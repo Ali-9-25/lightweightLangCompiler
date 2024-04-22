@@ -34,8 +34,9 @@
 "true"              { return TRUE; }   
 "false"             { return FALSE; } 
 [0-9]+              { yylval.num = atoi(yytext); return NUMBER; }
-[-+]?[0-9]+\.[0-9]+ {yylval.f = atof(yytext); return FLOATING_NUMBER; }
-""(\.|[^"])*""      { yylval.str = strdup(yytext); return STRING_LITERAL; }
+[-+]?[0-9]+\.[0-9]+ { yylval.f = atof(yytext); return FLOATING_NUMBER; }
+// old implementation, not sure if it is incorrect ""(\.|[^"])*""      { yylval.str = strdup(yytext); return STRING_LITERAL; }
+"\"([^\"\\]|\\.)*\"" { yylval.str = strdup(yytext); return STRING_LITERAL; }
 '\''.'\''           { yylval.c = yytext[1]; return CHARACTER_LITERAL; }
 [a-zA-Z_][a-zA-Z0-9_]*  { yylval.str = strdup(yytext); return IDENTIFIER; }
 
