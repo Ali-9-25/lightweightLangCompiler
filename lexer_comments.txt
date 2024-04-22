@@ -1,0 +1,1 @@
+// old implementation, not sure if it is incorrect ""(\.|[^"])*""      { yylval.str = strdup(yytext); return STRING_LITERAL; }
