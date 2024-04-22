@@ -2,55 +2,78 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <stdbool.h>
 /* Symbol table structure */
 struct symbol {
     char *name;
-    int type; // 0 for int, 1 for float
-    int initialized;
+    char* data_type; // 0 for int, 1 for float
+    char * type;  // keyword, constant, variable
+    int line_no; // line number too check if the variable is initialized or if the closest scope control token
 };
 
 #define MAX_SYMBOLS 1000
 struct symbol symbol_table[MAX_SYMBOLS];
 int symbol_count = 0;
-
+// int count = 0;
+extern FILE *yyin;
 void yyerror(const char *s);
 int yylex();
-extern FILE *yyin;
-
 int lookup_symbol(char *name);
 void add_symbol(char *name, int type, int initialized);
+// void insert_type();
+// int search(char *type);
+// void add(char c);
 %}
 
 %union {
-    int num;
-    char *str;
+    int num;   // integer
+    char *str; // string 
+    float f;   // float
+    int b;    // bool
+    char c;    // char
+    struct {
+        int num;
+        char *str;
+        float f;
+        int b;
+        char c;
+    } term;
 }
 
-%token <num> NUMBER
-%token <str> IDENTIFIER
-%token IF ELSE WHILE REPEAT UNTIL FOR SWITCH CASE BREAK CONTINUE FUNCTION VAR CONST
-%token EQ NEQ LT GT LEQ GEQ PLUS MINUS TIMES DIVIDE ASSIGN LPAREN RPAREN LBRACE RBRACE SEMICOLON COLON
+%token <num> NUMBER          // integer
+%token <f> FLOATING_NUMBER   // floating number
+%token <str> STRING_LITERAL  // string 
+%token <str> IDENTIFIER      // variables
+%token <c> CHARACTER_LITERAL // char
+%token <b> TRUE FALSE        // boolean values
+%token <c> COMMA //comma for seperation -> ,
+/* keywords */
+%token <str> IF ELSE WHILE REPEAT UNTIL FOR SWITCH CASE BREAK CONTINUE CONST INT FLOAT BOOL STRING CHAR VOID RETURN
+/* operators */
+%token <str> EQ NEQ LT GT LEQ GEQ PLUS MINUS TIMES DIVIDE ASSIGN LPAREN RPAREN LBRACE RBRACE SEMICOLON COLON POWER
+%token <str> AND OR NOT 
 
-%type <num> expr TERM
-%type <str> stmt_list stmt if_stmt while_stmt repeat_stmt for_stmt switch_stmt func_decl var_decl const_decl
+
+
+%type <term> expr TERM
+%type <str> stmt_list stmt if_stmt while_stmt repeat_stmt for_stmt switch_stmt func_decl var_decl const_decl func_call return_stmt DATATYPE assignment_stmt case_list dec_param_list call_param_list 
 
 %left PLUS MINUS
 %left TIMES DIVIDE
 %left EQ NEQ
 %left LT GT LEQ GEQ
+%right POWER
 %nonassoc UMINUS
 
 %%
-
 //program: This is the start symbol of the grammar. It represents the entire program and consists of a stmt_list
-program: stmt_list
-       ;
+/* program: stmt_list
+       ; */
 
 /*stmt_list: This rule defines a list of statements. 
 It can either be empty or consist of multiple statements (stmt) separated by semicolons.
 */
-stmt_list: stmt_list stmt
+stmt_list: stmt stmt_list 
          | stmt
          ;
 
@@ -65,19 +88,25 @@ stmt: if_stmt
     | for_stmt
     | switch_stmt
     | func_decl
+    | func_call
     | var_decl
     | const_decl
     | assignment_stmt
     | expr SEMICOLON
+    | return_stmt
+    | BREAK
+    | CONTINUE
     ;
 
+return_stmt:  RETURN
+            | RETURN TERM
+            ;
 /*
 if_stmt: This rule defines the syntax for if statements. 
 It can be a simple if statement or an if-else statement, both followed by a block of statements.
 Similarly, the rules for while_stmt, repeat_stmt, for_stmt, switch_stmt, func_decl, var_decl, 
 and const_decl define the syntax for their respective constructs.
 */
-//TODO: is this if ambigious?
 if_stmt: IF LPAREN expr RPAREN LBRACE stmt_list RBRACE
        | IF LPAREN expr RPAREN LBRACE stmt_list RBRACE ELSE LBRACE stmt_list RBRACE 
        ;
@@ -94,32 +123,43 @@ for_stmt: FOR LPAREN assignment_stmt SEMICOLON expr SEMICOLON assignment_stmt RP
 switch_stmt: SWITCH LPAREN expr RPAREN LBRACE case_list RBRACE
             ;
 
-case_list: case_list CASE expr COLON stmt_list
+case_list: CASE expr COLON stmt_list case_list
          | CASE expr COLON stmt_list
          ;
 
-func_decl: FUNCTION IDENTIFIER LPAREN param_list RPAREN LBRACE stmt_list RBRACE
+func_decl: DATATYPE IDENTIFIER LPAREN dec_param_list RPAREN LBRACE stmt_list RBRACE
          ;
 
-param_list: param_list IDENTIFIER
+func_call: IDENTIFIER LPAREN  call_param_list RPAREN SEMICOLON
+         | IDENTIFIER LPAREN RPAREN SEMICOLON
+         ;
+
+/* param_list: param_list IDENTIFIER
           | IDENTIFIER
           | /* Empty */
-          ;
+          /* ; */
+
+dec_param_list: DATATYPE IDENTIFIER COMMA dec_param_list
+              | DATATYPE IDENTIFIER 
+              ;
+
+call_param_list: IDENTIFIER COMMA call_param_list
+               | DATATYPE IDENTIFIER
+               ;
 
 /*
 var_decl: This rule defines the syntax for variable declarations, 
 where a variable is declared with the VAR keyword followed by an identifier and a semicolon.
 */
-//TODO: shouldnt we replace var with datatype?
-var_decl: VAR IDENTIFIER SEMICOLON
+var_decl: DATATYPE IDENTIFIER SEMICOLON
+        | DATATYPE IDENTIFIER ASSIGN TERM SEMICOLON
         ;
 
 /*
 const_decl: This rule defines the syntax for constant declarations, 
 where a constant is declared with the CONST keyword followed by an identifier, an assignment operator, a number, and a semicolon.
 */
-//TODO: why must we assign a number to a constant? Plus shouldnt we have datatype after const?
-const_decl: CONST IDENTIFIER ASSIGN NUMBER SEMICOLON
+const_decl: CONST IDENTIFIER ASSIGN TERM SEMICOLON
           ;
 
 /*
@@ -134,8 +174,21 @@ expr: This rule defines arithmetic expressions,
 which can involve addition, subtraction, multiplication, division, parentheses, identifiers, and numbers.
 */
 
-//TODO I think we should add more operators such as modulus, power, AND, OR, NOT, XOR
-expr: expr PLUS TERM
+expr: expr EQ IDENTIFIER
+    | expr NEQ IDENTIFIER
+    | expr LT IDENTIFIER
+    | expr GT IDENTIFIER
+    | expr LEQ IDENTIFIER
+    | expr GEQ IDENTIFIER 
+    | expr DIVIDE IDENTIFIER
+    | expr TIMES IDENTIFIER
+    | expr MINUS IDENTIFIER
+    | expr PLUS IDENTIFIER
+    /* | expr POWER IDENTIFIER
+    | expr AND IDENTIFIER
+    | expr OR IDENTIFIER
+    | NOT expr  */
+    | expr PLUS TERM
     | expr MINUS TERM
     | expr TIMES TERM
     | expr DIVIDE TERM
@@ -145,16 +198,31 @@ expr: expr PLUS TERM
     | expr GT TERM
     | expr LEQ TERM
     | expr GEQ TERM
-    | LPAREN TERM RPAREN %prec UMINUS
+    | expr POWER TERM
+    | expr AND TERM
+    | expr OR TERM
+    | NOT TERM 
+    | LPAREN expr RPAREN %prec UMINUS
     | IDENTIFIER
-    | NUMBER
     ;
 
     
-TERM: IDENTIFIER
-    | NUMBER
+TERM: NUMBER
+    | TRUE
+    | FALSE
+    | CHARACTER_LITERAL
+    | STRING_LITERAL
+    | FLOATING_NUMBER
     ;
 
+
+
+DATATYPE: INT
+        | BOOL
+        | CHAR
+        | STRING
+        | FLOAT
+        | VOID
 %%
 
 /*
@@ -183,20 +251,7 @@ int lookup_symbol(char *name) {
 add_symbol: This function adds a new symbol to the symbol table.
 It checks if the symbol is already declared or if the table is full before adding the symbol.
 */
-void add_symbol(char *name, int type, int initialized) {
-    if (lookup_symbol(name) != -1) {
-        yyerror("Variable already declared");
-    } else if (symbol_count >= MAX_SYMBOLS) {
-        yyerror("Symbol table full");
-    } else {
-        symbol_table[symbol_count].name = strdup(name);
-        symbol_table[symbol_count].type = type;
-        symbol_table[symbol_count].initialized = initialized;
-        symbol_count++;
-    }
-}
-
-/*
+/* /*
 main: This is the entry point of the program. It checks if the input file is provided as a command-line argument, 
 opens the file, sets yyin to point to it, calls yyparse() to start parsing, and then closes the file. 
 If there's an error opening the file, it prints an error message and exits.
