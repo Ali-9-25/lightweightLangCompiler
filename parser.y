@@ -10,6 +10,7 @@ struct symbol {
     char * type;  // keyword, constant, variable
     int line_no; // line number too check if the variable is initialized or if the closest scope control token
 };
+//TODO: Add unary operators such as ++, --, !, ~, etc.
 
 #define MAX_SYMBOLS 1000
 struct symbol symbol_table[MAX_SYMBOLS];
