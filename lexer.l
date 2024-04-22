@@ -5,9 +5,7 @@
 #include <string.h>
 %}
 
-
 %%
-
 "if"                { return IF; }
 "else"              { return ELSE; }
 "while"             { return WHILE; }
@@ -21,15 +19,12 @@
 "return"            { return RETURN; }
 "const"             { return CONST; }
 
-      
 "int"               { return INT; }         
 "float"             { return FLOAT; }      
 "bool"              { return BOOL; }      
 "string"            { return STRING; }   
 "char"              { return CHAR; } 
 "void"              { return VOID; }   
-
-
 
 "true"              { return TRUE; }   
 "false"             { return FALSE; } 
@@ -39,7 +34,6 @@
 "\"([^\"\\]|\\.)*\"" { yylval.str = strdup(yytext); return STRING_LITERAL; }
 '\''.'\''           { yylval.c = yytext[1]; return CHARACTER_LITERAL; }
 [a-zA-Z_][a-zA-Z0-9_]*  { yylval.str = strdup(yytext); return IDENTIFIER; }
-
 
 "=="                { return EQ; }
 "!="                { return NEQ; }
@@ -60,14 +54,13 @@
 ":"                 { return COLON; }
 ";"                 { return SEMICOLON; }
 ","                 { return COMMA; }
-"^"                 { return POWER; }
 "and"               { return AND; }
 "or"                { return OR; }
 "not"               { return NOT; }
 \/\/.*              { ; }
-\/\*(.*\n)*.*\*\/   { ; } 
+\/\*([^*]|\*[^/])*\*\/   { ; } 
 [ \t\n]             ; // Ignore whitespace and newline
-.                   { printf("Invalid character"); }
+.                   { printf("Invalid character\n"); }
 %%
 
 int yywrap() {
