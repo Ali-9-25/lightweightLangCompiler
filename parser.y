@@ -94,13 +94,14 @@ stmt: if_stmt       {printf("if statement\n");}
     | const_decl    {printf("constant declaration\n");}
     | assignment_stmt   {printf("assignment statement\n");}
     | expr SEMICOLON    {printf("expression\n");}
-    | return_stmt   {printf("return statement\n");}
+    | return_stmt SEMICOLON   {printf("return statement\n");}
     | BREAK SEMICOLON   {printf("break statement\n");}
     | CONTINUE SEMICOLON   {printf("continue statement\n");}
     ;
 
 return_stmt:  RETURN    {printf("return\n");}
-            | RETURN TERM   {printf("return\n");}
+            | RETURN TERM   {printf("return term\n");}
+            | RETURN expr   {printf("return expr\n");}
             ;
 /*
 if_stmt: This rule defines the syntax for if statements. 
@@ -118,7 +119,7 @@ while_stmt: WHILE LPAREN expr RPAREN LBRACE stmt_list RBRACE    {printf("while (
 repeat_stmt: REPEAT LBRACE stmt_list RBRACE UNTIL LPAREN expr RPAREN SEMICOLON  {printf("repeat {stmt_list} until (expr)\n");}
            ;
 
-for_stmt: FOR LPAREN assignment_stmt SEMICOLON expr SEMICOLON assignment_stmt RPAREN LBRACE stmt_list RBRACE {printf("for (assignment; expr; assignment) {stmt_list}\n");}
+for_stmt: FOR LPAREN var_decl expr SEMICOLON IDENTIFIER ASSIGN expr RPAREN LBRACE stmt_list RBRACE {printf("for (assignment; expr; assignment) {stmt_list}\n");}
         ;
 
 switch_stmt: SWITCH LPAREN expr RPAREN LBRACE case_list RBRACE  {printf("switch (expr) {case_list}\n");}
@@ -167,8 +168,21 @@ const_decl: CONST DATATYPE IDENTIFIER ASSIGN TERM SEMICOLON  {printf("const data
 assignment_stmt: This rule defines the syntax for assignment statements, 
 where an identifier is assigned the value of an expression followed by a semicolon.
 */
-assignment_stmt: IDENTIFIER ASSIGN TERM SEMICOLON   {printf("identifier = expr ;\n");}
+assignment_stmt: IDENTIFIER ASSIGN TERM SEMICOLON   {printf("identifier = term ;\n");}
+               | IDENTIFIER ASSIGN expr SEMICOLON   {printf("identifier = expr ;\n");}
                ;
+
+/* assignment_RHS  : TERM
+                | assignment_RHS PLUS TERM
+                | assignment_RHS MINUS TERM
+                | assignment_RHS TIMES TERM
+                | assignment_RHS DIVIDE TERM
+                | assignment_RHS POWER TERM
+                | assignment_RHS AND TERM
+                | assignment_RHS OR TERM
+                | NOT LPAREN expr RPAREN
+
+                ; */
 
 /*
 expr: This rule defines arithmetic expressions, 
