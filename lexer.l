@@ -1,5 +1,5 @@
 %{
-#include "y.tab.h"
+#include "parser.tab.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,6 +15,7 @@
 "switch"            { return SWITCH; }
 "case"              { return CASE; }
 "break"             { return BREAK; }
+"default"           { return DEFAULT; }
 "continue"          { return CONTINUE; }
 "return"            { return RETURN; }
 "const"             { return CONST; }
@@ -42,7 +43,7 @@
 "="                 { return ASSIGN; }
 "("                 { return LPAREN; }
 ")"                 { return RPAREN; }
-"{"                 { return LBRACE; }
+"{"                 { return LBRACE;} 
 "}"                 { return RBRACE; }
 ":"                 { return COLON; }
 ";"                 { return SEMICOLON; }

@@ -49,7 +49,7 @@ void add_symbol(char *name, int type, int initialized);
 %token <b> TRUE FALSE        // boolean values
 %token <c> COMMA //comma for seperation -> ,
 /* keywords */
-%token <str> IF ELSE WHILE REPEAT UNTIL FOR SWITCH CASE BREAK CONTINUE CONST INT FLOAT BOOL STRING CHAR VOID RETURN
+%token <str> IF ELSE WHILE REPEAT UNTIL FOR SWITCH CASE BREAK CONTINUE CONST INT FLOAT BOOL STRING CHAR VOID RETURN DEFAULT
 /* operators */
 %token <str> EQ NEQ LT GT LEQ GEQ PLUS MINUS TIMES DIVIDE ASSIGN LPAREN RPAREN LBRACE RBRACE SEMICOLON COLON POWER
 %token <str> AND OR NOT 
@@ -125,9 +125,12 @@ for_stmt: FOR LPAREN var_decl expr SEMICOLON IDENTIFIER ASSIGN expr RPAREN LBRAC
 switch_stmt: SWITCH LPAREN expr RPAREN LBRACE case_list RBRACE  {printf("switch (expr) {case_list}\n");}
             ;
 
-case_list: CASE expr COLON stmt_list case_list  {printf("case expr: stmt_list case_list\n");}
-         | CASE expr COLON stmt_list            {printf("case expr: stmt_list\n");}
-         ;  
+case_list:    CASE expr COLON stmt_list case_list  {printf("case expr: stmt_list case_list\n");}
+            | CASE TERM COLON stmt_list  case_list  {printf("case term: stmt_list case_list\n");}
+            | CASE expr COLON stmt_list             {printf("case expr: stmt_list\n");}
+            | CASE TERM COLON stmt_list            {printf("case term: stmt_list\n");}
+            | DEFAULT COLON stmt_list               {printf("default: stmt_list\n");}
+            ;  
 
 func_decl: DATATYPE IDENTIFIER LPAREN dec_param_list RPAREN LBRACE stmt_list RBRACE {printf("data_type identifier (dec_param_list) {stmt_list}\n");}
          ;
@@ -171,18 +174,6 @@ where an identifier is assigned the value of an expression followed by a semicol
 assignment_stmt: IDENTIFIER ASSIGN TERM SEMICOLON   {printf("identifier = term ;\n");}
                | IDENTIFIER ASSIGN expr SEMICOLON   {printf("identifier = expr ;\n");}
                ;
-
-/* assignment_RHS  : TERM
-                | assignment_RHS PLUS TERM
-                | assignment_RHS MINUS TERM
-                | assignment_RHS TIMES TERM
-                | assignment_RHS DIVIDE TERM
-                | assignment_RHS POWER TERM
-                | assignment_RHS AND TERM
-                | assignment_RHS OR TERM
-                | NOT LPAREN expr RPAREN
-
-                ; */
 
 /*
 expr: This rule defines arithmetic expressions, 
