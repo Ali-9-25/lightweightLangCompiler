@@ -51,7 +51,7 @@ void add_symbol(char *name, int type, int initialized);
 /* keywords */
 %token <str> IF ELSE WHILE REPEAT UNTIL FOR SWITCH CASE BREAK CONTINUE CONST INT FLOAT BOOL STRING CHAR VOID RETURN DEFAULT
 /* operators */
-%token <str> EQ NEQ LT GT LEQ GEQ PLUS MINUS TIMES DIVIDE ASSIGN LPAREN RPAREN LBRACE RBRACE SEMICOLON COLON POWER
+%token <str> EQ NEQ LT GT LEQ GEQ PLUS MINUS TIMES DIVIDE ASSIGN LPAREN RPAREN LBRACE RBRACE SEMICOLON COLON POWER UNARY
 %token <str> AND OR NOT 
 
 
@@ -64,6 +64,7 @@ void add_symbol(char *name, int type, int initialized);
 %left EQ NEQ
 %left LT GT LEQ GEQ
 %right POWER
+%right UNARY
 %nonassoc UMINUS
 
 %%
@@ -194,6 +195,8 @@ expr: expr EQ IDENTIFIER    {printf("expr == identifer\n");}
     | expr TIMES IDENTIFIER {printf("expr * identifer\n");}
     | expr MINUS IDENTIFIER {printf("expr - identifer\n");}
     | expr PLUS IDENTIFIER  {printf("expr + identifer\n");}
+    | UNARY IDENTIFIER           {printf("unary expr\n");}
+    | IDENTIFIER UNARY          {printf("identifer unary\n");}
     /* | expr POWER IDENTIFIER  
     | expr AND IDENTIFIER
     | expr OR IDENTIFIER

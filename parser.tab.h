@@ -84,10 +84,11 @@
      SEMICOLON = 300,
      COLON = 301,
      POWER = 302,
-     AND = 303,
-     OR = 304,
-     NOT = 305,
-     UMINUS = 306
+     UNARY = 303,
+     AND = 304,
+     OR = 305,
+     NOT = 306,
+     UMINUS = 307
    };
 #endif
 
@@ -116,7 +117,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 120 "parser.tab.h"
+#line 121 "parser.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

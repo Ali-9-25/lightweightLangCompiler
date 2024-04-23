@@ -5,6 +5,9 @@
 #include <string.h>
 %}
 
+%option yylineno
+unary "++"|"--"
+
 %%
 "if"                { return IF; }
 "else"              { return ELSE; }
@@ -39,6 +42,7 @@
 "-"                 { return MINUS; }
 "*"                 { return TIMES; }
 "/"                 { return DIVIDE; }
+{unary}             {return UNARY;}
 "^"                 { return POWER; }  
 "="                 { return ASSIGN; }
 "("                 { return LPAREN; }

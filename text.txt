@@ -34,6 +34,8 @@ int sum(int x, float y, bool flag);
 int func (int x, float y)
 {
     int z = x + y;
+    z++;
+    --z;
     return z;
 }
 
