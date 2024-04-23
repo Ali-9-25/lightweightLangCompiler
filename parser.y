@@ -76,7 +76,7 @@ void add_symbol(char *name, int type, int initialized);
 It can either be empty or consist of multiple statements (stmt) separated by semicolons.
 */
 stmt_list   : stmt stmt_list   {printf("stmt_list\n");}
-            | LBRACE stmt_list RBRACE  {printf("{stmt_list}\n");}
+            | LBRACE stmt_list RBRACE stmt_list  {printf("{stmt_list}\n");}
             |            {printf("stmt epsilon\n");}
             ;
 
