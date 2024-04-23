@@ -205,6 +205,7 @@ expr: expr EQ IDENTIFIER
     | NOT TERM 
     | LPAREN expr RPAREN %prec UMINUS
     | IDENTIFIER
+    | TERM
     ;
 
     
