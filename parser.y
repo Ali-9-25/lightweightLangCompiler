@@ -75,9 +75,10 @@ void add_symbol(char *name, int type, int initialized);
 /*stmt_list: This rule defines a list of statements. 
 It can either be empty or consist of multiple statements (stmt) separated by semicolons.
 */
-stmt_list: stmt stmt_list   {printf("stmt_list\n");}
-         |            {printf("stmt epsilon\n");}
-         ;
+stmt_list   : stmt stmt_list   {printf("stmt_list\n");}
+            | LBRACE stmt_list RBRACE  {printf("{stmt_list}\n");}
+            |            {printf("stmt epsilon\n");}
+            ;
 
 /*
 stmt: This rule defines various types of statements in the language, 
@@ -216,6 +217,20 @@ expr: expr EQ IDENTIFIER    {printf("expr == identifer\n");}
     | expr OR TERM      {printf("expr || term\n");}
     | NOT TERM          {printf("!term\n");}
     | LPAREN expr RPAREN %prec UMINUS       {printf("(expr)\n");}
+    | expr PLUS LPAREN expr RPAREN {printf("expr + (expr)\n");}
+    | expr MINUS LPAREN expr RPAREN {printf("expr - (expr)\n");}
+    | expr TIMES LPAREN expr RPAREN {printf("expr * (expr)\n");}
+    | expr DIVIDE LPAREN expr RPAREN {printf("expr / (expr)\n");}
+    | expr EQ LPAREN expr RPAREN {printf("expr == (expr)\n");}
+    | expr NEQ LPAREN expr RPAREN {printf("expr != (expr)\n");}
+    | expr LT LPAREN expr RPAREN {printf("expr < (expr)\n");}
+    | expr GT LPAREN expr RPAREN {printf("expr > (expr)\n");}
+    | expr LEQ LPAREN expr RPAREN {printf("expr <= (expr)\n");}
+    | expr GEQ LPAREN expr RPAREN {printf("expr >= (expr)\n");}
+    | expr POWER LPAREN expr RPAREN {printf("expr ^ (expr)\n");}
+    | expr AND LPAREN expr RPAREN {printf("expr && (expr)\n");}
+    | expr OR LPAREN expr RPAREN {printf("expr || (expr)\n");}
+    | NOT LPAREN expr RPAREN {printf("! (expr)\n");}
     | IDENTIFIER    {printf("identifier\n");}
     | func_call    {printf("function call\n");}
     ;
