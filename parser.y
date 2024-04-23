@@ -56,7 +56,7 @@ void add_symbol(char *name, int type, int initialized);
 
 
 
-%type <term> expr TERM
+%type <num> expr TERM
 %type <str> stmt_list stmt if_stmt while_stmt repeat_stmt for_stmt switch_stmt func_decl var_decl const_decl func_call return_stmt DATATYPE assignment_stmt case_list dec_param_list call_param_list 
 
 %left PLUS MINUS
@@ -74,8 +74,8 @@ void add_symbol(char *name, int type, int initialized);
 /*stmt_list: This rule defines a list of statements. 
 It can either be empty or consist of multiple statements (stmt) separated by semicolons.
 */
-stmt_list: stmt stmt_list 
-         | stmt
+stmt_list: stmt stmt_list   {printf("stmt_list\n");}
+         |            {printf("stmt epsilon\n");}
          ;
 
 /*
@@ -83,24 +83,24 @@ stmt: This rule defines various types of statements in the language,
 including control flow statements (if, while, etc.), function declarations, variable and constant declarations, 
 assignment statements, and simple expressions followed by a semicolon.
 */
-stmt: if_stmt
-    | while_stmt
-    | repeat_stmt
-    | for_stmt
-    | switch_stmt
-    | func_decl
-    | func_call
-    | var_decl
-    | const_decl
-    | assignment_stmt
-    | expr SEMICOLON
-    | return_stmt
-    | BREAK
-    | CONTINUE
+stmt: if_stmt       {printf("if statement\n");}
+    | while_stmt    {printf("while statement\n");}
+    | repeat_stmt   {printf("repeat statement\n");}
+    | for_stmt      {printf("for statement\n");}
+    | switch_stmt   {printf("switch statement\n");}
+    | func_decl     {printf("function declaration\n");}
+    | func_call     {printf("function call\n");}
+    | var_decl      {printf("variable declaration\n");}
+    | const_decl    {printf("constant declaration\n");}
+    | assignment_stmt   {printf("assignment statement\n");}
+    | expr SEMICOLON    {printf("expression\n");}
+    | return_stmt   {printf("return statement\n");}
+    | BREAK SEMICOLON   {printf("break statement\n");}
+    | CONTINUE SEMICOLON   {printf("continue statement\n");}
     ;
 
-return_stmt:  RETURN
-            | RETURN TERM
+return_stmt:  RETURN    {printf("return\n");}
+            | RETURN TERM   {printf("return\n");}
             ;
 /*
 if_stmt: This rule defines the syntax for if statements. 
@@ -108,31 +108,31 @@ It can be a simple if statement or an if-else statement, both followed by a bloc
 Similarly, the rules for while_stmt, repeat_stmt, for_stmt, switch_stmt, func_decl, var_decl, 
 and const_decl define the syntax for their respective constructs.
 */
-if_stmt: IF LPAREN expr RPAREN LBRACE stmt_list RBRACE
-       | IF LPAREN expr RPAREN LBRACE stmt_list RBRACE ELSE LBRACE stmt_list RBRACE 
+if_stmt: IF LPAREN expr RPAREN LBRACE stmt_list RBRACE                              {printf("if (expr) {stmt_list}\n");}
+       | IF LPAREN expr RPAREN LBRACE stmt_list RBRACE ELSE LBRACE stmt_list RBRACE     {printf("if (expr) {stmt_list} else {stmt_list}\n");}
        ;
 
-while_stmt: WHILE LPAREN expr RPAREN LBRACE stmt_list RBRACE
+while_stmt: WHILE LPAREN expr RPAREN LBRACE stmt_list RBRACE    {printf("while (expr) {stmt_list}\n");}
           ;
 
-repeat_stmt: REPEAT LBRACE stmt_list RBRACE UNTIL LPAREN expr RPAREN SEMICOLON
+repeat_stmt: REPEAT LBRACE stmt_list RBRACE UNTIL LPAREN expr RPAREN SEMICOLON  {printf("repeat {stmt_list} until (expr)\n");}
            ;
 
-for_stmt: FOR LPAREN assignment_stmt SEMICOLON expr SEMICOLON assignment_stmt RPAREN LBRACE stmt_list RBRACE
+for_stmt: FOR LPAREN assignment_stmt SEMICOLON expr SEMICOLON assignment_stmt RPAREN LBRACE stmt_list RBRACE {printf("for (assignment; expr; assignment) {stmt_list}\n");}
         ;
 
-switch_stmt: SWITCH LPAREN expr RPAREN LBRACE case_list RBRACE
+switch_stmt: SWITCH LPAREN expr RPAREN LBRACE case_list RBRACE  {printf("switch (expr) {case_list}\n");}
             ;
 
-case_list: CASE expr COLON stmt_list case_list
-         | CASE expr COLON stmt_list
+case_list: CASE expr COLON stmt_list case_list  {printf("case expr: stmt_list case_list\n");}
+         | CASE expr COLON stmt_list            {printf("case expr: stmt_list\n");}
+         ;  
+
+func_decl: DATATYPE IDENTIFIER LPAREN dec_param_list RPAREN LBRACE stmt_list RBRACE {printf("data_type identifier (dec_param_list) {stmt_list}\n");}
          ;
 
-func_decl: DATATYPE IDENTIFIER LPAREN dec_param_list RPAREN LBRACE stmt_list RBRACE
-         ;
-
-func_call: IDENTIFIER LPAREN  call_param_list RPAREN SEMICOLON
-         | IDENTIFIER LPAREN RPAREN SEMICOLON
+func_call: IDENTIFIER LPAREN  call_param_list RPAREN SEMICOLON  {printf("identifier (call_param_list) ;\n");}
+         | IDENTIFIER LPAREN RPAREN SEMICOLON                   {printf("identifier () ;\n");}
          ;
 
 /* param_list: param_list IDENTIFIER
@@ -140,34 +140,34 @@ func_call: IDENTIFIER LPAREN  call_param_list RPAREN SEMICOLON
           | /* Empty */
           /* ; */
 
-dec_param_list: DATATYPE IDENTIFIER COMMA dec_param_list
-              | DATATYPE IDENTIFIER 
+dec_param_list: DATATYPE IDENTIFIER COMMA dec_param_list        {printf("data_type identifier , dec_param_list\n");}
+              | DATATYPE IDENTIFIER                             {printf("data_type identifier\n");}
               ;
 
-call_param_list: IDENTIFIER COMMA call_param_list
-               | DATATYPE IDENTIFIER
+call_param_list: IDENTIFIER COMMA call_param_list           {printf("identifier , call_param_list\n");}
+               | DATATYPE IDENTIFIER                            {printf("data_type identifier\n");}
                ;
 
 /*
 var_decl: This rule defines the syntax for variable declarations, 
 where a variable is declared with the VAR keyword followed by an identifier and a semicolon.
 */
-var_decl: DATATYPE IDENTIFIER SEMICOLON
-        | DATATYPE IDENTIFIER ASSIGN TERM SEMICOLON
+var_decl: DATATYPE IDENTIFIER SEMICOLON             {printf("data_type identifier; \n");}
+        | DATATYPE IDENTIFIER ASSIGN TERM SEMICOLON {printf("data_type identifier = term ;\n");}
         ;
 
 /*
 const_decl: This rule defines the syntax for constant declarations, 
 where a constant is declared with the CONST keyword followed by an identifier, an assignment operator, a number, and a semicolon.
 */
-const_decl: CONST IDENTIFIER ASSIGN TERM SEMICOLON
+const_decl: CONST DATATYPE IDENTIFIER ASSIGN TERM SEMICOLON  {printf("const data_type identifier = term ;\n");}
           ;
 
 /*
 assignment_stmt: This rule defines the syntax for assignment statements, 
 where an identifier is assigned the value of an expression followed by a semicolon.
 */
-assignment_stmt: IDENTIFIER ASSIGN expr SEMICOLON
+assignment_stmt: IDENTIFIER ASSIGN TERM SEMICOLON   {printf("identifier = expr ;\n");}
                ;
 
 /*
@@ -175,46 +175,53 @@ expr: This rule defines arithmetic expressions,
 which can involve addition, subtraction, multiplication, division, parentheses, identifiers, and numbers.
 */
 
-expr: expr EQ IDENTIFIER
-    | expr NEQ IDENTIFIER
-    | expr LT IDENTIFIER
-    | expr GT IDENTIFIER
-    | expr LEQ IDENTIFIER
-    | expr GEQ IDENTIFIER 
-    | expr DIVIDE IDENTIFIER
-    | expr TIMES IDENTIFIER
-    | expr MINUS IDENTIFIER
-    | expr PLUS IDENTIFIER
-    /* | expr POWER IDENTIFIER
+expr: expr EQ IDENTIFIER    {printf("expr == identifer\n");}
+    | expr NEQ IDENTIFIER   {printf("expr != identifer\n");}
+    | expr LT IDENTIFIER    {printf("expr < identifer\n");}
+    | expr GT IDENTIFIER    {printf("expr > identifer\n");}
+    | expr LEQ IDENTIFIER   {printf("expr <= identifer\n");}
+    | expr GEQ IDENTIFIER   {printf("expr >= identifer\n");}
+    | expr DIVIDE IDENTIFIER    {printf("expr / identifer\n");}
+    | expr TIMES IDENTIFIER {printf("expr * identifer\n");}
+    | expr MINUS IDENTIFIER {printf("expr - identifer\n");}
+    | expr PLUS IDENTIFIER  {printf("expr + identifer\n");}
+    /* | expr POWER IDENTIFIER  
     | expr AND IDENTIFIER
     | expr OR IDENTIFIER
     | NOT expr  */
-    | expr PLUS TERM
-    | expr MINUS TERM
-    | expr TIMES TERM
-    | expr DIVIDE TERM
-    | expr EQ TERM
-    | expr NEQ TERM
-    | expr LT TERM
-    | expr GT TERM
-    | expr LEQ TERM
-    | expr GEQ TERM
-    | expr POWER TERM
-    | expr AND TERM
-    | expr OR TERM
-    | NOT TERM 
-    | LPAREN expr RPAREN %prec UMINUS
-    | IDENTIFIER
-    | TERM
+    | expr PLUS TERM    {printf("expr + term\n");}
+    | expr MINUS TERM   {printf("expr - term\n");}
+    | expr TIMES TERM   {printf("expr * term\n");}
+    | expr DIVIDE TERM  {printf("expr / term\n");}
+    | expr EQ TERM      {printf("expr == term\n");}    
+    | expr NEQ TERM     {printf("expr != term\n");}
+    | expr LT TERM      {printf("expr < term\n");}
+    | expr GT TERM      {printf("expr > term\n");}
+    | expr LEQ TERM     {printf("expr <= term\n");}
+    | expr GEQ TERM     {printf("expr >= term\n");}
+    | expr POWER TERM   {printf("expr ^ term\n");}
+    | expr AND TERM     {printf("expr && term\n");}
+    | expr OR TERM      {printf("expr || term\n");}
+    | NOT TERM          {printf("!term\n");}
+    | LPAREN expr RPAREN %prec UMINUS       {printf("(expr)\n");}
+    | IDENTIFIER    {printf("identifier\n");}
     ;
 
-    
+/*     
 TERM: NUMBER
     | TRUE
     | FALSE
     | CHARACTER_LITERAL
     | STRING_LITERAL
     | FLOATING_NUMBER
+    ; */
+    
+TERM: NUMBER    {printf("number\n");}
+    | TRUE      {printf("true\n");}
+    | FALSE         {printf("false\n");}
+    | CHARACTER_LITERAL {printf("char\n");}
+    | STRING_LITERAL    {printf("string\n");}
+    | FLOATING_NUMBER   {printf("float\n");}
     ;
 
 
@@ -253,7 +260,7 @@ int lookup_symbol(char *name) {
 add_symbol: This function adds a new symbol to the symbol table.
 It checks if the symbol is already declared or if the table is full before adding the symbol.
 */
-/* /*
+/*
 main: This is the entry point of the program. It checks if the input file is provided as a command-line argument, 
 opens the file, sets yyin to point to it, calls yyparse() to start parsing, and then closes the file. 
 If there's an error opening the file, it prints an error message and exits.
