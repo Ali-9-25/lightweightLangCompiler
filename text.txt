@@ -1,16 +1,7 @@
-
-int choice;
-switch (choice) {
-    case x:
-        int y;
-        break;
-    case 1:
-        int y;
-        break;
-    case x:
-        int y;
-        break;
-    default:
-        int y;
-        break;
+int func (int x, float y)
+{
+    int z = x + y;
+    return z;
 }
+
+int z = func(x , y);

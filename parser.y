@@ -89,7 +89,7 @@ stmt: if_stmt       {printf("if statement\n");}
     | for_stmt      {printf("for statement\n");}
     | switch_stmt   {printf("switch statement\n");}
     | func_decl     {printf("function declaration\n");}
-    | func_call     {printf("function call\n");}
+    /* | func_call SEMICOLON     {printf("function call\n");} */
     | var_decl      {printf("variable declaration\n");}
     | const_decl    {printf("constant declaration\n");}
     | assignment_stmt   {printf("assignment statement\n");}
@@ -135,8 +135,8 @@ case_list:    CASE expr COLON stmt_list case_list  {printf("case expr: stmt_list
 func_decl: DATATYPE IDENTIFIER LPAREN dec_param_list RPAREN LBRACE stmt_list RBRACE {printf("data_type identifier (dec_param_list) {stmt_list}\n");}
          ;
 
-func_call: IDENTIFIER LPAREN  call_param_list RPAREN SEMICOLON  {printf("identifier (call_param_list) ;\n");}
-         | IDENTIFIER LPAREN RPAREN SEMICOLON                   {printf("identifier () ;\n");}
+func_call: IDENTIFIER LPAREN  call_param_list RPAREN  {printf("identifier (call_param_list) ;\n");}
+         | IDENTIFIER LPAREN RPAREN                   {printf("identifier () ;\n");}
          ;
 
 /* param_list: param_list IDENTIFIER
@@ -148,8 +148,10 @@ dec_param_list: DATATYPE IDENTIFIER COMMA dec_param_list        {printf("data_ty
               | DATATYPE IDENTIFIER                             {printf("data_type identifier\n");}
               ;
 
-call_param_list: IDENTIFIER COMMA call_param_list           {printf("identifier , call_param_list\n");}
-               | DATATYPE IDENTIFIER                            {printf("data_type identifier\n");}
+call_param_list: expr COMMA call_param_list           {printf("identifier , call_param_list\n");}
+               | expr                            {printf("data_type identifier\n");}
+               /* | TERM COMMA call_param_list           {printf("term , call_param_list\n");}
+               | TERM                            {printf("term\n");} */
                ;
 
 /*
@@ -158,6 +160,7 @@ where a variable is declared with the VAR keyword followed by an identifier and 
 */
 var_decl: DATATYPE IDENTIFIER SEMICOLON             {printf("data_type identifier; \n");}
         | DATATYPE IDENTIFIER ASSIGN TERM SEMICOLON {printf("data_type identifier = term ;\n");}
+        | DATATYPE IDENTIFIER ASSIGN expr SEMICOLON  {printf("data_type identifier = expr ;\n");}
         ;
 
 /*
@@ -210,6 +213,7 @@ expr: expr EQ IDENTIFIER    {printf("expr == identifer\n");}
     | NOT TERM          {printf("!term\n");}
     | LPAREN expr RPAREN %prec UMINUS       {printf("(expr)\n");}
     | IDENTIFIER    {printf("identifier\n");}
+    | func_call    {printf("function call\n");}
     ;
 
 /*     
