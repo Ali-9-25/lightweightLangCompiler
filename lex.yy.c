@@ -286,22 +286,22 @@ static void yy_fatal_error YY_PROTO(( yyconst char msg[] ));
 #define YY_END_OF_BUFFER 53
 static yyconst short int yy_accept[151] =
     {   0,
-        0,    0,   53,   51,   50,   50,   51,   51,   51,   38,
-       39,   34,   32,   44,   33,   35,   21,   42,   43,   28,
-       37,   29,   25,   36,   25,   25,   25,   25,   25,   25,
-       25,   25,   25,   25,   25,   25,   25,   25,   40,   41,
-       27,    0,    0,    0,    0,   48,    0,   21,   30,   26,
-       31,   25,   25,   25,   25,   25,   25,   25,   25,   25,
-       25,   25,    1,   25,   25,   25,   25,   25,   25,   25,
-       25,   25,   25,    0,    0,    0,    0,   48,   22,   25,
-       25,   25,   25,   25,   25,   25,   25,   25,    6,   13,
-       25,   25,   25,   25,   25,   25,   25,   25,   25,    0,
+        0,    0,   53,   51,   50,   50,   51,   51,   51,   33,
+       34,   29,   27,   39,   28,   30,   43,   37,   38,   23,
+       32,   24,   47,   31,   47,   47,   47,   47,   47,   47,
+       47,   47,   47,   47,   47,   47,   47,   47,   35,   36,
+       22,    0,    0,    0,    0,   48,    0,   43,   25,   21,
+       26,   47,   47,   47,   47,   47,   47,   47,   47,   47,
+       47,   47,    1,   47,   47,   41,   47,   47,   47,   47,
+       47,   47,   47,    0,    0,    0,    0,   48,   44,   40,
+       47,   47,   47,   47,   47,   47,   47,   47,    6,   13,
+       42,   47,   47,   47,   47,   47,   47,   47,   47,    0,
 
-        0,   49,   15,   25,    8,   17,   25,   25,    2,   25,
-       25,   25,   25,   25,   25,   19,   25,   18,   25,    0,
-        0,    9,   12,   25,   20,   14,   25,   25,   25,   25,
-        5,    3,    0,    0,   25,    4,   11,   16,    7,    0,
-       24,   25,    0,   10,    0,    0,    0,    0,   23,    0
+        0,   49,   15,   47,    8,   17,   47,   47,    2,   47,
+       47,   47,   47,   47,   47,   19,   47,   18,   47,    0,
+        0,    9,   12,   47,   20,   14,   47,   47,   47,   47,
+        5,    3,    0,    0,   47,    4,   11,   16,    7,    0,
+       46,   47,    0,   10,    0,    0,    0,    0,   45,    0
     } ;
 
 static yyconst int yy_ec[256] =
@@ -800,161 +800,161 @@ YY_RULE_SETUP
 case 21:
 YY_RULE_SETUP
 #line 31 ".\\lexer.l"
-{ yylval.num = atoi(yytext); return NUMBER; }
+{ return EQ; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
 #line 32 ".\\lexer.l"
-{ yylval.f = atof(yytext); return FLOATING_NUMBER; }
+{ return NEQ; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
 #line 33 ".\\lexer.l"
-{ yylval.str = strdup(yytext); return STRING_LITERAL; }
+{ return LT; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
 #line 34 ".\\lexer.l"
-{ yylval.c = yytext[1]; return CHARACTER_LITERAL; }
+{ return GT; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
 #line 35 ".\\lexer.l"
-{ yylval.str = strdup(yytext); return IDENTIFIER; }
+{ return LEQ; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 37 ".\\lexer.l"
-{ return EQ; }
+#line 36 ".\\lexer.l"
+{ return GEQ; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 38 ".\\lexer.l"
-{ return NEQ; }
+#line 37 ".\\lexer.l"
+{ return PLUS; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 39 ".\\lexer.l"
-{ return LT; }
+#line 38 ".\\lexer.l"
+{ return MINUS; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 40 ".\\lexer.l"
-{ return GT; }
+#line 39 ".\\lexer.l"
+{ return TIMES; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 41 ".\\lexer.l"
-{ return LEQ; }
+#line 40 ".\\lexer.l"
+{ return DIVIDE; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 42 ".\\lexer.l"
-{ return GEQ; }
+#line 41 ".\\lexer.l"
+{ return POWER; }  
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 43 ".\\lexer.l"
-{ return PLUS; }
+#line 42 ".\\lexer.l"
+{ return ASSIGN; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 44 ".\\lexer.l"
-{ return MINUS; }
+#line 43 ".\\lexer.l"
+{ return LPAREN; }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 45 ".\\lexer.l"
-{ return TIMES; }
+#line 44 ".\\lexer.l"
+{ return RPAREN; }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 46 ".\\lexer.l"
-{ return DIVIDE; }
+#line 45 ".\\lexer.l"
+{ return LBRACE; }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 47 ".\\lexer.l"
-{ return POWER; }  
+#line 46 ".\\lexer.l"
+{ return RBRACE; }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 48 ".\\lexer.l"
-{ return ASSIGN; }
+#line 47 ".\\lexer.l"
+{ return COLON; }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 49 ".\\lexer.l"
-{ return LPAREN; }
+#line 48 ".\\lexer.l"
+{ return SEMICOLON; }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 50 ".\\lexer.l"
-{ return RPAREN; }
+#line 49 ".\\lexer.l"
+{ return COMMA; }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 51 ".\\lexer.l"
-{ return LBRACE; }
+#line 50 ".\\lexer.l"
+{ return AND; }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 52 ".\\lexer.l"
-{ return RBRACE; }
+#line 51 ".\\lexer.l"
+{ return OR; }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 53 ".\\lexer.l"
-{ return COLON; }
+#line 52 ".\\lexer.l"
+{ return NOT; }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 54 ".\\lexer.l"
-{ return SEMICOLON; }
+#line 53 ".\\lexer.l"
+{ yylval.num = atoi(yytext); return NUMBER; }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 55 ".\\lexer.l"
-{ return COMMA; }
+#line 54 ".\\lexer.l"
+{ yylval.f = atof(yytext); return FLOATING_NUMBER; }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 56 ".\\lexer.l"
-{ return AND; }
+#line 55 ".\\lexer.l"
+{ yylval.str = strdup(yytext); return STRING_LITERAL; }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 57 ".\\lexer.l"
-{ return OR; }
+#line 56 ".\\lexer.l"
+{ yylval.c = yytext[1]; return CHARACTER_LITERAL; }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 58 ".\\lexer.l"
-{ return NOT; }
+#line 57 ".\\lexer.l"
+{ yylval.str = strdup(yytext); return IDENTIFIER; }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 59 ".\\lexer.l"
+#line 60 ".\\lexer.l"
 { ; }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 60 ".\\lexer.l"
+#line 61 ".\\lexer.l"
 { ; } 
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 61 ".\\lexer.l"
+#line 62 ".\\lexer.l"
 ; // Ignore whitespace and newline
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 62 ".\\lexer.l"
+#line 63 ".\\lexer.l"
 { printf("Invalid character\n"); }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 63 ".\\lexer.l"
+#line 64 ".\\lexer.l"
 ECHO;
 	YY_BREAK
 #line 961 "lex.yy.c"
@@ -1843,7 +1843,7 @@ int main()
 	return 0;
 	}
 #endif
-#line 63 ".\\lexer.l"
+#line 64 ".\\lexer.l"
 
 
 int yywrap() {
