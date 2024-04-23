@@ -1,7 +1,38 @@
+
+repeat {
+    for (int i = 0 ; i<n ; i = i +1)
+    {
+        int y;
+        switch (i) {
+            case 0:
+                // code for case 0
+                break;
+            case 1:
+                // code for case 1
+                break;
+            case 2:
+                // code for case 2
+                break;
+            default:
+                // code for default case
+                break;
+        }
+    }
+} until (i < 5);
+
+
+while (x==2)
+{
+    if (y == 5)
+    {
+        int f;
+    }
+}
+
 int func (int x, float y)
 {
     int z = x + y;
     return z;
 }
 
-int z = func(x , y);
+int z = func(3 , y);

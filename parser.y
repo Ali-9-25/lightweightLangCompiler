@@ -150,8 +150,8 @@ dec_param_list: DATATYPE IDENTIFIER COMMA dec_param_list        {printf("data_ty
 
 call_param_list: expr COMMA call_param_list           {printf("identifier , call_param_list\n");}
                | expr                            {printf("data_type identifier\n");}
-               /* | TERM COMMA call_param_list           {printf("term , call_param_list\n");}
-               | TERM                            {printf("term\n");} */
+               | TERM COMMA call_param_list           {printf("term , call_param_list\n");}
+               | TERM                            {printf("term\n");}
                ;
 
 /*
