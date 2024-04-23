@@ -1,5 +1,16 @@
-int x = 5;
 
-int y = 6;
-
-x = 5;
+int choice;
+switch (choice) {
+    case x:
+        int y;
+        break;
+    case 1:
+        int y;
+        break;
+    case x:
+        int y;
+        break;
+    default:
+        int y;
+        break;
+}
