@@ -133,6 +133,7 @@ case_list:    CASE expr COLON stmt_list case_list  {printf("case expr: stmt_list
             ;  
 
 func_decl: DATATYPE IDENTIFIER LPAREN dec_param_list RPAREN LBRACE stmt_list RBRACE {printf("data_type identifier (dec_param_list) {stmt_list}\n");}
+         | DATATYPE IDENTIFIER LPAREN dec_param_list RPAREN SEMICOLON                {printf("data_type identifier () {stmt_list}\n");}
          ;
 
 func_call: IDENTIFIER LPAREN  call_param_list RPAREN  {printf("identifier (call_param_list) ;\n");}
