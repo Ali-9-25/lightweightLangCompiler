@@ -8,6 +8,7 @@
 %option yylineno
 unary "++"|"--"
 
+
 %%
 "if"                { return IF; }
 "else"              { return ELSE; }

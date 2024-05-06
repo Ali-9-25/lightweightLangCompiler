@@ -4,8 +4,8 @@
 #include <string.h>
 #include <stdbool.h>
 /* Symbol table structure */
-struct symbol {
-    char *name;
+struct datatype {
+    char *id_name;
     char* data_type; // 0 for int, 1 for float
     char * type;  // keyword, constant, variable
     int line_no; // line number too check if the variable is initialized or if the closest scope control token
@@ -17,13 +17,19 @@ struct symbol symbol_table[MAX_SYMBOLS];
 int symbol_count = 0;
 // int count = 0;
 extern FILE *yyin;
+
 void yyerror(const char *s);
 int yylex();
 int lookup_symbol(char *name);
 void add_symbol(char *name, int type, int initialized);
-// void insert_type();
-// int search(char *type);
-// void add(char c);
+int yywrap();
+void insert_type();
+void add(char c);
+
+char type[10];
+int q = 0;
+
+extern int countn;
 %}
 
 %union {
@@ -41,6 +47,15 @@ void add_symbol(char *name, int type, int initialized);
     } term;
 }
 
+
+/*
+H -> Header files
+K -> Keywords -> for , if , else
+V -> variables
+C -> constant
+F ->functions
+
+*/
 %token <num> NUMBER          // integer
 %token <f> FLOATING_NUMBER   // floating number
 %token <str> STRING_LITERAL  // string 
@@ -97,8 +112,8 @@ stmt: if_stmt       {printf("if statement\n");}
     | assignment_stmt   {printf("assignment statement\n");}
     | expr SEMICOLON    {printf("expression\n");}
     | return_stmt SEMICOLON   {printf("return statement\n");}
-    | BREAK SEMICOLON   {printf("break statement\n");}
-    | CONTINUE SEMICOLON   {printf("continue statement\n");}
+    | BREAK SEMICOLON   {printf("break statement\n"); add("K");}
+    | CONTINUE SEMICOLON   {printf("continue statement\n"); add("K");}
     ;
 
 return_stmt:  RETURN    {printf("return\n");}
@@ -111,17 +126,17 @@ It can be a simple if statement or an if-else statement, both followed by a bloc
 Similarly, the rules for while_stmt, repeat_stmt, for_stmt, switch_stmt, func_decl, var_decl, 
 and const_decl define the syntax for their respective constructs.
 */
-if_stmt: IF LPAREN expr RPAREN LBRACE stmt_list RBRACE                              {printf("if (expr) {stmt_list}\n");}
-       | IF LPAREN expr RPAREN LBRACE stmt_list RBRACE ELSE LBRACE stmt_list RBRACE     {printf("if (expr) {stmt_list} else {stmt_list}\n");}
+if_stmt: IF{ add("K"); } LPAREN expr RPAREN LBRACE{ add("K"); } stmt_list RBRACE{ add("K"); }                              {printf("if (expr) {stmt_list}\n");}
+       | IF{ add("K"); } LPAREN expr RPAREN LBRACE{ add("K"); } stmt_list RBRACE{ add("K"); } ELSE{ add("K"); } LBRACE{ add("K"); } stmt_list RBRACE{ add("K"); printf("if (expr) {stmt_list} else {stmt_list}\n");}
        ;
 
-while_stmt: WHILE LPAREN expr RPAREN LBRACE stmt_list RBRACE    {printf("while (expr) {stmt_list}\n");}
+while_stmt: WHILE{ add("K"); } LPAREN expr RPAREN LBRACE{ add("K"); } stmt_list RBRACE {add("K"); printf("while (expr) {stmt_list}\n");}
           ;
 
-repeat_stmt: REPEAT LBRACE stmt_list RBRACE UNTIL LPAREN expr RPAREN SEMICOLON  {printf("repeat {stmt_list} until (expr)\n");}
+repeat_stmt: REPEAT{ add("K"); } LBRACE{ add("K"); } stmt_list RBRACE{ add("K"); } UNTIL{ add("K"); } LPAREN{ add("K"); } expr RPAREN{ add("K"); } SEMICOLON  {printf("repeat {stmt_list} until (expr)\n");}
            ;
 
-for_stmt: FOR LPAREN var_decl expr SEMICOLON IDENTIFIER ASSIGN expr RPAREN LBRACE stmt_list RBRACE {printf("for (assignment; expr; assignment) {stmt_list}\n");}
+for_stmt: FOR{ add("K"); } LPAREN var_decl expr SEMICOLON IDENTIFIER{ add("V"); } ASSIGN expr RPAREN LBRACE{ add("K"); } stmt_list RBRACE { add("K"); printf("for (assignment; expr; assignment) {stmt_list}\n");}
         ;
 
 switch_stmt: SWITCH LPAREN expr RPAREN LBRACE case_list RBRACE  {printf("switch (expr) {case_list}\n");}
@@ -262,6 +277,11 @@ DATATYPE: INT
         | VOID
 %%
 
+
+
+void insert_type(){
+    strcpy(type, yytext);
+}
 /*
 yyerror: This function is called when there's a syntax error in the input.
 It prints an error message and exits the program.
@@ -270,16 +290,59 @@ void yyerror(const char *s) {
     fprintf(stderr, "Error: %s\n", s);
     exit(1);
 }
+/**/
+void add(char c){
+    q = search(yytext);
+    if(!q){
+        if(c == "H"){
+            symbol_table[symbol_count].id_name = strdup(yytext);
+            symbol_table[symbol_count].data_type = strdup(type);
+            symbol_table[symbol_count].line_no = countn;
+            symbol_table[symbol_count].type = strdup("Header");
+            symbol_count++;
+        }
+        else if(c == "K"){
+            symbol_table[symbol_count].id_name = strdup(yytext);
+            symbol_table[symbol_count].data_type = strdup("N/A");
+            symbol_table[symbol_count].line_no = countn;
+            symbol_table[symbol_count].type = strdup("Keyword\t");
+            symbol_count++;
+        }
+        else if(c == "V"){
+            symbol_table[symbol_count].id_name = strdup(yytext);
+            symbol_table[symbol_count].data_type = strdup(type);
+            symbol_table[symbol_count].line_no = countn;
+            symbol_table[symbol_count].type = strdup("Variable");
+            symbol_count++;
+        }
+        else if(c == "C"){
+            symbol_table[symbol_count].id_name = strdup(yytext);
+            symbol_table[symbol_count].data_type = strdup("CONST");
+            symbol_table[symbol_count].line_no = countn;
+            symbol_table[symbol_count].type = strdup("Constant");
+            symbol_count++;
+        }
+        else if(c == "F"){
+            symbol_table[symbol_count].id_name = strdup(yytext);
+            symbol_table[symbol_count].data_type = strdup(type);
+            symbol_table[symbol_count].line_no = countn;
+            symbol_table[symbol_count].type = strdup("Function");
+            symbol_count++;
+        }
 
+    }
+}
 /*
 lookup_symbol: This function searches for a symbol in the symbol table by name.
 If the symbol is found, it returns its index in the table; otherwise, it returns -1.
 */
-int lookup_symbol(char *name) {
-    for (int i = 0; i < symbol_count; i++) {
-        if (strcmp(symbol_table[i].name, name) == 0) {
-            return i;
+int lookup_symbol(char *type) {
+    for (int i = symbol_count - 1; i >=0; i--) {
+        if (strcmp(symbol_table[i].id_name, type) == 0) {
+            return -1;
+            break;
         }
+        return 0;
     }
     return -1;
 }
