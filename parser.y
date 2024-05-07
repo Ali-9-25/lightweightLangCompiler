@@ -126,7 +126,7 @@ It can be a simple if statement or an if-else statement, both followed by a bloc
 Similarly, the rules for while_stmt, repeat_stmt, for_stmt, switch_stmt, func_decl, var_decl, 
 and const_decl define the syntax for their respective constructs.
 */
-if_stmt: IF{ add("K");} LPAREN expr RPAREN LBRACE {add("S");} stmt_list RBRACE {add("S");}                                                                  {printf("if (expr) {stmt_list}\n");}
+if_stmt: IF {add("K");} LPAREN expr RPAREN LBRACE {add("S");} stmt_list RBRACE {add("S");}                                                                  {printf("if (expr) {stmt_list}\n");}
        | IF {add("K");} LPAREN expr RPAREN LBRACE {add("S");} stmt_list RBRACE {add("S");} ELSE {add("K");} LBRACE {add("S");} stmt_list RBRACE {add("S");} {printf("if (expr) {stmt_list} else {stmt_list}\n");}
        ;
 
