@@ -144,17 +144,18 @@ switch_stmt: SWITCH {add("K");} LPAREN expr RPAREN LBRACE {add("S");} case_list 
 
 case_list:    CASE{ add("K");} expr COLON stmt_list case_list  {printf("case expr: stmt_list case_list\n");}
             | CASE{ add("K");} TERM COLON stmt_list  case_list  {printf("case term: stmt_list case_list\n");}
-            | CASE{ add("K");} expr COLON stmt_list             {printf("case expr: stmt_list\n");}
-            | CASE{ add("K");} TERM COLON stmt_list            {printf("case term: stmt_list\n");}
+            /* | CASE{ add("K");} expr COLON stmt_list             {printf("case expr: stmt_list\n");}
+            | CASE{ add("K");} TERM COLON stmt_list            {printf("case term: stmt_list\n");} */
             | DEFAULT{ add("K");} COLON stmt_list               {printf("default: stmt_list\n");}
             ;  
 
 func_decl: DATATYPE IDENTIFIER {add("F");} LPAREN dec_param_list RPAREN LBRACE { add("S");}  stmt_list RBRACE {add("S");} {printf("data_type identifier (dec_param_list) {stmt_list}\n");}
-         | DATATYPE IDENTIFIER {add("F");} LPAREN dec_param_list RPAREN SEMICOLON                {printf("data_type identifier () {stmt_list}\n");}
+         /* | DATATYPE IDENTIFIER {add("F");} LPAREN RPAREN  LBRACE { add("S");}  stmt_list RBRACE {add("S");}               {printf("data_type identifier () {stmt_list}\n");} */
          ;
 
 func_call: IDENTIFIER {add("F");} LPAREN  call_param_list RPAREN  {printf("identifier (call_param_list) ;\n");}
-         | IDENTIFIER {add("F");} LPAREN RPAREN                   {printf("identifier () ;\n");}
+         /* | IDENTIFIER {add("F");} LPAREN RPAREN                   {printf("identifier () ;\n");} */
+         |
          ;
 
 /* param_list: param_list IDENTIFIER
@@ -164,6 +165,7 @@ func_call: IDENTIFIER {add("F");} LPAREN  call_param_list RPAREN  {printf("ident
 
 dec_param_list: DATATYPE IDENTIFIER {add("V");} COMMA dec_param_list        {printf("data_type identifier , dec_param_list\n");}
               | DATATYPE IDENTIFIER {add("V");}                             {printf("data_type identifier\n");}
+              |
               ;
 
 call_param_list: expr COMMA call_param_list     {printf("identifier , call_param_list\n");}
