@@ -40,131 +40,87 @@
       know about them.  */
    enum yytokentype {
      NUMBER = 258,
-     FLOATING_NUMBER = 259,
-     STRING_LITERAL = 260,
-     IDENTIFIER = 261,
-     CHARACTER_LITERAL = 262,
-     TRUE = 263,
-     FALSE = 264,
-     COMMA = 265,
-     IF = 266,
-     ELSE = 267,
-     WHILE = 268,
-     REPEAT = 269,
-     UNTIL = 270,
-     FOR = 271,
-     SWITCH = 272,
-     CASE = 273,
-     BREAK = 274,
-     CONTINUE = 275,
-     CONST = 276,
-     INT = 277,
-     FLOAT = 278,
-     BOOL = 279,
-     STRING = 280,
-     CHAR = 281,
-     VOID = 282,
-     RETURN = 283,
-     DEFAULT = 284,
-     EQ = 285,
-     NEQ = 286,
-     LT = 287,
-     GT = 288,
-     LEQ = 289,
-     GEQ = 290,
-     PLUS = 291,
-     MINUS = 292,
-     TIMES = 293,
-     DIVIDE = 294,
-     ASSIGN = 295,
-     LPAREN = 296,
-     RPAREN = 297,
-     LBRACE = 298,
-     RBRACE = 299,
-     SEMICOLON = 300,
-     COLON = 301,
-     POWER = 302,
-     UNARY = 303,
-     AND = 304,
-     OR = 305,
-     NOT = 306,
-     UMINUS = 307
+     IDENTIFIER = 259,
+     IF = 260,
+     ELSE = 261,
+     WHILE = 262,
+     REPEAT = 263,
+     UNTIL = 264,
+     FOR = 265,
+     SWITCH = 266,
+     CASE = 267,
+     BREAK = 268,
+     CONTINUE = 269,
+     FUNCTION = 270,
+     VAR = 271,
+     CONST = 272,
+     EQ = 273,
+     NEQ = 274,
+     LT = 275,
+     GT = 276,
+     LEQ = 277,
+     GEQ = 278,
+     PLUS = 279,
+     MINUS = 280,
+     TIMES = 281,
+     DIVIDE = 282,
+     ASSIGN = 283,
+     LPAREN = 284,
+     RPAREN = 285,
+     LBRACE = 286,
+     RBRACE = 287,
+     SEMICOLON = 288,
+     COLON = 289,
+     UMINUS = 290
    };
 #endif
 /* Tokens.  */
 #define NUMBER 258
-#define FLOATING_NUMBER 259
-#define STRING_LITERAL 260
-#define IDENTIFIER 261
-#define CHARACTER_LITERAL 262
-#define TRUE 263
-#define FALSE 264
-#define COMMA 265
-#define IF 266
-#define ELSE 267
-#define WHILE 268
-#define REPEAT 269
-#define UNTIL 270
-#define FOR 271
-#define SWITCH 272
-#define CASE 273
-#define BREAK 274
-#define CONTINUE 275
-#define CONST 276
-#define INT 277
-#define FLOAT 278
-#define BOOL 279
-#define STRING 280
-#define CHAR 281
-#define VOID 282
-#define RETURN 283
-#define DEFAULT 284
-#define EQ 285
-#define NEQ 286
-#define LT 287
-#define GT 288
-#define LEQ 289
-#define GEQ 290
-#define PLUS 291
-#define MINUS 292
-#define TIMES 293
-#define DIVIDE 294
-#define ASSIGN 295
-#define LPAREN 296
-#define RPAREN 297
-#define LBRACE 298
-#define RBRACE 299
-#define SEMICOLON 300
-#define COLON 301
-#define POWER 302
-#define UNARY 303
-#define AND 304
-#define OR 305
-#define NOT 306
-#define UMINUS 307
+#define IDENTIFIER 259
+#define IF 260
+#define ELSE 261
+#define WHILE 262
+#define REPEAT 263
+#define UNTIL 264
+#define FOR 265
+#define SWITCH 266
+#define CASE 267
+#define BREAK 268
+#define CONTINUE 269
+#define FUNCTION 270
+#define VAR 271
+#define CONST 272
+#define EQ 273
+#define NEQ 274
+#define LT 275
+#define GT 276
+#define LEQ 277
+#define GEQ 278
+#define PLUS 279
+#define MINUS 280
+#define TIMES 281
+#define DIVIDE 282
+#define ASSIGN 283
+#define LPAREN 284
+#define RPAREN 285
+#define LBRACE 286
+#define RBRACE 287
+#define SEMICOLON 288
+#define COLON 289
+#define UMINUS 290
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 35 "parser.y"
+#line 25 "parser.y"
 {
-    int num;   // integer
-    char *str; // string 
-    float f;   // float
-    int b;    // bool
-    char c;    // char
-    struct {
-        int num;
-        char *str;
-        float f;
-        int b;
-        char c;
-    } term;
+    int num;
+    char *str;
 }
 /* Line 1529 of yacc.c.  */
-#line 168 "y.tab.h"
+#line 124 "y.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

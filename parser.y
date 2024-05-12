@@ -2,34 +2,30 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
+#include <stdarg.h>
+#include "node.h"
+#define MAX_SYMBOLS 1000
 /* Symbol table structure */
-struct datatype {
-    char *id_name;
+struct symbol {
+    char *name;
     char* data_type; // 0 for int, 1 for float
     char * type;  // keyword, constant, variable
     int line_no; // line number too check if the variable is initialized or if the closest scope control token
 };
+nodeType *opr(int oper, int nops, ...);
+nodeType *id(int i);
+nodeType *con(int value);
 //TODO: Add unary operators such as ++, --, !, ~, etc.
-
-#define MAX_SYMBOLS 1000
 struct symbol symbol_table[MAX_SYMBOLS];
 int symbol_count = 0;
 // int count = 0;
 extern FILE *yyin;
-
 void yyerror(const char *s);
 int yylex();
 int lookup_symbol(char *name);
-void add_symbol(char *name, int type, int initialized);
-int yywrap();
-void insert_type();
-void add(char c);
-
-char type[10];
-int q = 0;
-
-extern int countn;
+void add(char c, char * name, char * type);
+char * charToString(char c);
+extern int countn; // line count
 %}
 
 %union {
@@ -47,15 +43,6 @@ extern int countn;
     } term;
 }
 
-
-/*
-H -> Header files
-K -> Keywords -> for , if , else
-V -> variables
-C -> constant
-F ->functions
-
-*/
 %token <num> NUMBER          // integer
 %token <f> FLOATING_NUMBER   // floating number
 %token <str> STRING_LITERAL  // string 
@@ -91,8 +78,8 @@ F ->functions
 It can either be empty or consist of multiple statements (stmt) separated by semicolons.
 */
 stmt_list   : stmt stmt_list   {printf("stmt_list\n");}
-            | LBRACE {add("S");}  stmt_list RBRACE {add("S");}  stmt_list  {printf("{stmt_list}\n");}
-            |                   {printf("stmt epsilon\n");}
+            | LBRACE stmt_list RBRACE stmt_list  {printf("{stmt_list}\n");}
+            |            {printf("stmt epsilon\n");}
             ;
 
 /*
@@ -112,13 +99,13 @@ stmt: if_stmt       {printf("if statement\n");}
     | assignment_stmt   {printf("assignment statement\n");}
     | expr SEMICOLON    {printf("expression\n");}
     | return_stmt SEMICOLON   {printf("return statement\n");}
-    | BREAK SEMICOLON   {printf("break statement\n"); add("K");}
-    | CONTINUE SEMICOLON   {printf("continue statement\n"); add("K");}
+    | BREAK SEMICOLON   {printf("break statement\n");}
+    | CONTINUE SEMICOLON   {printf("continue statement\n");}
     ;
 
-return_stmt:  RETURN {add("K");}        {printf("return\n");}
-            | RETURN {add("K");} TERM   {printf("return term\n");}
-            | RETURN {add("K");} expr   {printf("return expr\n");}
+return_stmt:  RETURN    {printf("return\n");}
+            | RETURN TERM   {printf("return term\n");}
+            | RETURN expr   {printf("return expr\n");}
             ;
 /*
 if_stmt: This rule defines the syntax for if statements. 
@@ -126,45 +113,35 @@ It can be a simple if statement or an if-else statement, both followed by a bloc
 Similarly, the rules for while_stmt, repeat_stmt, for_stmt, switch_stmt, func_decl, var_decl, 
 and const_decl define the syntax for their respective constructs.
 */
-/* if_stmt: IF {add("K");} LPAREN expr RPAREN LBRACE {add("S");} stmt_list RBRACE {add("S");}                                                                  {printf("if (expr) {stmt_list}\n");}
-       | IF {add("K");} LPAREN expr RPAREN LBRACE {add("S");} stmt_list RBRACE {add("S");} ELSE {add("K");} LBRACE {add("S");} stmt_list RBRACE {add("S");} {printf("if (expr) {stmt_list} else {stmt_list}\n");}
-       ; */
-if_stmt: IF {add("K");} LPAREN expr RPAREN LBRACE {add("S");} stmt_list RBRACE {add("S");} else_stmt                                                                 {printf("if (expr) {stmt_list}\n");}
+if_stmt: IF LPAREN expr RPAREN LBRACE stmt_list RBRACE                                  {printf("if (expr) {stmt_list}\n");}
+       | IF LPAREN expr RPAREN LBRACE stmt_list RBRACE ELSE LBRACE stmt_list RBRACE     {printf("if (expr) {stmt_list} else {stmt_list}\n");}
        ;
 
-else_stmt: ELSE {add("K");} LBRACE {add("S");} stmt_list RBRACE {add("S");} {printf("else {stmt_list}\n");}
-         | {printf("else epsilon\n");}
-         ;
-/* if_stmt: IF LPAREN expr RPAREN LBRACE stmt_list RBRACE                                                                  {printf("if (expr) {stmt_list}\n");}
-       | IF LPAREN expr RPAREN LBRACE stmt_list RBRACE ELSE LBRACE  stmt_list RBRACE  {printf("if (expr) {stmt_list} else {stmt_list}\n");}
-       ; */
-
-while_stmt: WHILE{ add("K"); } LPAREN expr RPAREN LBRACE{ add("S"); } stmt_list RBRACE {add("S"); printf("while (expr) {stmt_list}\n");}
+while_stmt: WHILE LPAREN expr RPAREN LBRACE stmt_list RBRACE    {printf("while (expr) {stmt_list}\n");}
           ;
 
-repeat_stmt: REPEAT{ add("K"); } LBRACE{ add("S"); } stmt_list RBRACE{ add("S"); } UNTIL{ add("K"); } LPAREN expr RPAREN SEMICOLON    {printf("repeat {stmt_list} until (expr)\n");}
+repeat_stmt: REPEAT LBRACE stmt_list RBRACE UNTIL LPAREN expr RPAREN SEMICOLON  {printf("repeat {stmt_list} until (expr)\n");}
            ;
 
-for_stmt: FOR{ add("K"); } LPAREN var_decl expr SEMICOLON IDENTIFIER{ add("V"); } ASSIGN { add("O");} expr RPAREN LBRACE {add("S");} stmt_list RBRACE {add("S");} {printf("for (assignment; expr; assignment) {stmt_list}\n");}
+for_stmt: FOR LPAREN var_decl expr SEMICOLON IDENTIFIER ASSIGN expr RPAREN LBRACE stmt_list RBRACE {printf("for (assignment; expr; assignment) {stmt_list}\n");}
         ;
 
-switch_stmt: SWITCH {add("K");} LPAREN expr RPAREN LBRACE {add("S");} case_list RBRACE { add("S");} {printf("switch (expr) {case_list}\n");}
+switch_stmt: SWITCH LPAREN expr RPAREN LBRACE case_list RBRACE  {printf("switch (expr) {case_list}\n");}
             ;
 
-case_list:    CASE{ add("K");} expr COLON stmt_list case_list  {printf("case expr: stmt_list case_list\n");}
-            | CASE{ add("K");} TERM COLON stmt_list  case_list  {printf("case term: stmt_list case_list\n");}
-            /* | CASE{ add("K");} expr COLON stmt_list             {printf("case expr: stmt_list\n");}
-            | CASE{ add("K");} TERM COLON stmt_list            {printf("case term: stmt_list\n");} */
-            | DEFAULT{ add("K");} COLON stmt_list               {printf("default: stmt_list\n");}
+case_list:    CASE expr COLON stmt_list case_list   {printf("case expr: stmt_list case_list\n");}
+            | CASE TERM COLON stmt_list  case_list  {printf("case term: stmt_list case_list\n");}
+            | CASE expr COLON stmt_list             {printf("case expr: stmt_list\n");}
+            | CASE TERM COLON stmt_list             {printf("case term: stmt_list\n");}
+            | DEFAULT COLON stmt_list               {printf("default: stmt_list\n");}
             ;  
 
-func_decl: DATATYPE IDENTIFIER {add("F");} LPAREN dec_param_list RPAREN LBRACE { add("S");}  stmt_list RBRACE {add("S");} {printf("data_type identifier (dec_param_list) {stmt_list}\n");}
-         /* | DATATYPE IDENTIFIER {add("F");} LPAREN RPAREN  LBRACE { add("S");}  stmt_list RBRACE {add("S");}               {printf("data_type identifier () {stmt_list}\n");} */
+func_decl: DATATYPE IDENTIFIER LPAREN dec_param_list RPAREN LBRACE stmt_list RBRACE  {printf("data_type identifier (dec_param_list) {stmt_list}\n");}
+         | DATATYPE IDENTIFIER LPAREN dec_param_list RPAREN SEMICOLON                {printf("data_type identifier () {stmt_list}\n");}
          ;
 
-func_call: IDENTIFIER {add("F");} LPAREN  call_param_list RPAREN  {printf("identifier (call_param_list) ;\n");}
-         /* | IDENTIFIER {add("F");} LPAREN RPAREN                   {printf("identifier () ;\n");} */
-         /* | */
+func_call: IDENTIFIER LPAREN  call_param_list RPAREN  {printf("identifier (call_param_list) ;\n");}
+         | IDENTIFIER LPAREN RPAREN                   {printf("identifier () ;\n");}
          ;
 
 /* param_list: param_list IDENTIFIER
@@ -172,101 +149,88 @@ func_call: IDENTIFIER {add("F");} LPAREN  call_param_list RPAREN  {printf("ident
           | /* Empty */
           /* ; */
 
-dec_param_list: DATATYPE IDENTIFIER {add("V");} COMMA dec_param_list        {printf("data_type identifier , dec_param_list\n");}
-              | DATATYPE IDENTIFIER {add("V");}                             {printf("data_type identifier\n");}
-              |                                                             {printf("epsilon\n");}
+dec_param_list: DATATYPE IDENTIFIER COMMA dec_param_list        {printf("data_type identifier , dec_param_list\n");}
+              | DATATYPE IDENTIFIER                             {printf("data_type identifier\n");}
               ;
 
-call_param_list: expr call_param_list_cont   {printf("identifier , call_param_list\n");}
-               | TERM call_param_list_cont  {printf("term\n");}
-               |                            {printf("epsilon\n");}
+call_param_list: expr COMMA call_param_list      {printf("identifier , call_param_list\n");}
+               | expr                            {printf("data_type identifier\n");}
+               | TERM COMMA call_param_list      {printf("term , call_param_list\n");}
+               | TERM                            {printf("term\n");}
                ;
-
-call_param_list_cont: COMMA call_param_list {printf(", call_param_list\n");}
-                    ;
 
 /*
 var_decl: This rule defines the syntax for variable declarations, 
 where a variable is declared with the VAR keyword followed by an identifier and a semicolon.
 */
-var_decl: DATATYPE IDENTIFIER {add("V");} SEMICOLON             {printf("data_type identifier; \n");}
-        | DATATYPE IDENTIFIER {add("V");} ASSIGN {add("O");} var_decl_cont {printf("data_type identifier = term ;\n");} 
+var_decl: DATATYPE IDENTIFIER SEMICOLON              {printf("data_type identifier; \n");}
+        | DATATYPE IDENTIFIER ASSIGN TERM SEMICOLON  {printf("data_type identifier = term ;\n");}
+        | DATATYPE IDENTIFIER ASSIGN expr SEMICOLON  {printf("data_type identifier = expr ;\n");}
         ;
-
-var_decl_cont: TERM SEMICOLON {printf("term ;\n");}
-            | expr SEMICOLON {printf("expr ;\n");}
-            ;
 
 /*
 const_decl: This rule defines the syntax for constant declarations, 
 where a constant is declared with the CONST keyword followed by an identifier, an assignment operator, a number, and a semicolon.
 */
-const_decl: CONST{ add("K");} DATATYPE IDENTIFIER{ add("V");} ASSIGN { add("O");} TERM SEMICOLON  {printf("const data_type identifier = term ;\n");}
+const_decl: CONST DATATYPE IDENTIFIER ASSIGN TERM SEMICOLON  {printf("const data_type identifier = term ;\n");}
           ;
 
 /*
 assignment_stmt: This rule defines the syntax for assignment statements, 
 where an identifier is assigned the value of an expression followed by a semicolon.
 */
-assignment_stmt: IDENTIFIER {add("V");} ASSIGN { add("O");} assignment_stmt_cont   {printf("identifier = term ;\n");}
+assignment_stmt: IDENTIFIER ASSIGN TERM SEMICOLON   {printf("identifier = term ;\n");  add('O', $2, "N/A"); add('V', $1, "N/A");}
+               | IDENTIFIER ASSIGN expr SEMICOLON   {printf("identifier = expr ;\n");  add('O', $2, "N/A"); add('V', $1, "N/A");}
                ;
-
-assignment_stmt_cont: TERM SEMICOLON   {printf("identifier = term ;\n");}
-                    | expr SEMICOLON   {printf("identifier = expr ;\n");}
-                    ;
 
 /*
 expr: This rule defines arithmetic expressions, 
 which can involve addition, subtraction, multiplication, division, parentheses, identifiers, and numbers.
 */
 
-expr: expr EQ {add("O");} IDENTIFIER {add("V");}    {printf("expr == identifer\n");}
-    | expr NEQ {add("O");} IDENTIFIER {add("V");}   {printf("expr != identifer\n");}
-    | expr LT {add("O");} IDENTIFIER {add("V");}    {printf("expr < identifer\n");}
-    | expr GT {add("O");} IDENTIFIER {add("V");}    {printf("expr > identifer\n");}
-    | expr LEQ {add("O");} IDENTIFIER {add("V");}   {printf("expr <= identifer\n");}
-    | expr GEQ {add("O");} IDENTIFIER {add("V");}   {printf("expr >= identifer\n");}
-    | expr DIVIDE {add("O");} IDENTIFIER {add("V");}    {printf("expr / identifer\n");}
-    | expr TIMES {add("O");} IDENTIFIER {add("V");} {printf("expr * identifer\n");}
-    | expr MINUS {add("O");} IDENTIFIER {add("V");} {printf("expr - identifer\n");}
-    | expr PLUS {add("O");} IDENTIFIER {add("V");}  {printf("expr + identifer\n");}
-    | UNARY {add("O");} IDENTIFIER {add("V");}           {printf("unary expr\n");}
-    | IDENTIFIER {add("V");} UNARY {add("O");}          {printf("identifer unary\n");}
-    /* | expr POWER IDENTIFIER  
-    | expr AND IDENTIFIER
-    | expr OR IDENTIFIER
-    | NOT expr  */
-    | expr PLUS {add("O");} TERM    {printf("expr + term\n");}
-    | expr MINUS {add("O");} TERM   {printf("expr - term\n");}
-    | expr TIMES {add("O");} TERM   {printf("expr * term\n");}
-    | expr DIVIDE {add("O");} TERM  {printf("expr / term\n");}
-    | expr EQ {add("O");} TERM      {printf("expr == term\n");}    
-    | expr NEQ {add("O");} TERM     {printf("expr != term\n");}
-    | expr LT {add("O");} TERM      {printf("expr < term\n");}
-    | expr GT {add("O");} TERM      {printf("expr > term\n");}
-    | expr LEQ {add("O");} TERM     {printf("expr <= term\n");}
-    | expr GEQ {add("O");} TERM     {printf("expr >= term\n");}
-    | expr POWER {add("O");} TERM   {printf("expr ^ term\n");}
-    | expr AND {add("O");} TERM     {printf("expr && term\n");}
-    | expr OR {add("O");} TERM      {printf("expr || term\n");}
-    | NOT {add("O");} TERM          {printf("!term\n");}
+expr: expr EQ IDENTIFIER                    {printf("expr == identifer\n");  add('O', $2, "N/A"); add('V', $3, "N/A");}
+    | expr NEQ IDENTIFIER                   {printf("expr != identifer\n");  add('O', $2, "N/A"); add('V', $3, "N/A");}
+    | expr LT IDENTIFIER                    {printf("expr < identifer\n");   add('O', $2, "N/A"); add('V', $3, "N/A");}
+    | expr GT IDENTIFIER                    {printf("expr > identifer\n");   add('O', $2, "N/A"); add('V', $3, "N/A");}
+    | expr LEQ IDENTIFIER                   {printf("expr <= identifer\n");  add('O', $2, "N/A"); add('V', $3, "N/A");}
+    | expr GEQ IDENTIFIER                   {printf("expr >= identifer\n");  add('O', $2, "N/A"); add('V', $3, "N/A");}
+    | expr DIVIDE IDENTIFIER                {printf("expr / identifer\n");   add('O', $2, "N/A"); add('V', $3, "N/A");}
+    | expr TIMES IDENTIFIER                 {printf("expr * identifer\n");   add('O', $2, "N/A"); add('V', $3, "N/A");}
+    | expr MINUS IDENTIFIER                 {printf("expr - identifer\n");   add('O', $2, "N/A"); add('V', $3, "N/A");}
+    | expr PLUS IDENTIFIER                  {printf("expr + identifer\n");   add('O', $2, "N/A"); add('V', $3, "N/A");}
+    | UNARY IDENTIFIER                      {printf("unary expr\n");     add('O', $1, "N/A"); add('V', $2, "N/A");}
+    | IDENTIFIER UNARY                      {printf("identifer unary\n");add('V', $1, "N/A"); add('O', $2, "N/A");}
+    | expr PLUS TERM                        {printf("expr + term\n");    add('O', $2, "N/A");}
+    | expr MINUS TERM                       {printf("expr - term\n");    add('O', $2, "N/A");}
+    | expr TIMES TERM                       {printf("expr * term\n");    add('O', $2, "N/A");}
+    | expr DIVIDE TERM                      {printf("expr / term\n");    add('O', $2, "N/A");}
+    | expr EQ TERM                          {printf("expr == term\n");   add('O', $2, "N/A");}    
+    | expr NEQ TERM                         {printf("expr != term\n");   add('O', $2, "N/A");}
+    | expr LT TERM                          {printf("expr < term\n");    add('O', $2, "N/A");}
+    | expr GT TERM                          {printf("expr > term\n");    add('O', $2, "N/A");}
+    | expr LEQ TERM                         {printf("expr <= term\n");   add('O', $2, "N/A");}
+    | expr GEQ TERM                         {printf("expr >= term\n");   add('O', $2, "N/A");}
+    | expr POWER TERM                       {printf("expr ^ term\n");    add('O', $2, "N/A");}
+    | expr AND TERM                         {printf("expr && term\n");   add('O', $2, "N/A");}
+    | expr OR TERM                          {printf("expr || term\n");   add('O', $2, "N/A");}
+    | NOT TERM                              {printf("!term\n");          add('O', $1, "N/A");}
     | LPAREN expr RPAREN %prec UMINUS       {printf("(expr)\n");}
-    | expr PLUS {add("O");} LPAREN expr RPAREN {printf("expr + (expr)\n");}
-    | expr MINUS {add("O");} LPAREN expr RPAREN {printf("expr - (expr)\n");}
-    | expr TIMES {add("O");} LPAREN expr RPAREN {printf("expr * (expr)\n");}
-    | expr DIVIDE {add("O");} LPAREN expr RPAREN {printf("expr / (expr)\n");}
-    | expr EQ {add("O");} LPAREN expr RPAREN {printf("expr == (expr)\n");}
-    | expr NEQ {add("O");} LPAREN expr RPAREN {printf("expr != (expr)\n");}
-    | expr LT {add("O");} LPAREN expr RPAREN {printf("expr < (expr)\n");}
-    | expr GT {add("O");} LPAREN expr RPAREN {printf("expr > (expr)\n");}
-    | expr LEQ {add("O");} LPAREN expr RPAREN {printf("expr <= (expr)\n");}
-    | expr GEQ {add("O");} LPAREN expr RPAREN {printf("expr >= (expr)\n");}
-    | expr POWER {add("O");} LPAREN expr RPAREN {printf("expr ^ (expr)\n");}
-    | expr AND {add("O");} LPAREN expr RPAREN {printf("expr && (expr)\n");}
-    | expr OR {add("O");} LPAREN expr RPAREN {printf("expr || (expr)\n");}
-    | NOT LPAREN expr RPAREN {printf("! (expr)\n");}
-    | IDENTIFIER {add("V");}    {printf("identifier\n");}
-    | func_call    {printf("function call\n");}
+    | expr PLUS LPAREN expr RPAREN          {printf("expr + (expr)\n");  add('O', $2, "N/A");}
+    | expr MINUS LPAREN expr RPAREN         {printf("expr - (expr)\n");  add('O', $2, "N/A");}
+    | expr TIMES LPAREN expr RPAREN         {printf("expr * (expr)\n");  add('O', $2, "N/A");}
+    | expr DIVIDE LPAREN expr RPAREN        {printf("expr / (expr)\n");  add('O', $2, "N/A");}
+    | expr EQ LPAREN expr RPAREN            {printf("expr == (expr)\n"); add('O', $2, "N/A");}
+    | expr NEQ LPAREN expr RPAREN           {printf("expr != (expr)\n"); add('O', $2, "N/A");}
+    | expr LT LPAREN expr RPAREN            {printf("expr < (expr)\n");  add('O', $2, "N/A");}
+    | expr GT LPAREN expr RPAREN            {printf("expr > (expr)\n");  add('O', $2, "N/A");}
+    | expr LEQ LPAREN expr RPAREN           {printf("expr <= (expr)\n"); add('O', $2, "N/A");}
+    | expr GEQ LPAREN expr RPAREN           {printf("expr >= (expr)\n"); add('O', $2, "N/A");}
+    | expr POWER LPAREN expr RPAREN         {printf("expr ^ (expr)\n");  add('O', $2, "N/A");}
+    | expr AND LPAREN expr RPAREN           {printf("expr && (expr)\n"); add('O', $2, "N/A");}
+    | expr OR LPAREN expr RPAREN            {printf("expr || (expr)\n"); add('O', $2, "N/A");}
+    | NOT LPAREN expr RPAREN                {printf("! (expr)\n");       add('O', $1, "N/A");}  
+    | IDENTIFIER                            {printf("identifier\n");     add('V', $1, "N/A");}
+    | func_call                             {printf("function call\n");}
     ;
 
 /*     
@@ -278,28 +242,124 @@ TERM: NUMBER
     | FLOATING_NUMBER
     ; */
     
-TERM: NUMBER {add("C");}             {printf("number\n");}
-    | TRUE {add("C");}               {printf("true\n");}
-    | FALSE {add("C");}              {printf("false\n");}
-    | CHARACTER_LITERAL {add("C");}  {printf("char\n");}
-    | STRING_LITERAL {add("C");}     {printf("string\n");}
-    | FLOATING_NUMBER {add("C");}    {printf("float\n");}
+TERM: NUMBER            {printf("number\n");char x[20]; sprintf(x, "%d", $1); add('C', x, "int");}
+    | TRUE              {printf("true\n");   add('C', "true", "bool");}
+    | FALSE             {printf("false\n");  add('C', "false", "bool");}
+    | CHARACTER_LITERAL {printf("char\n");   add('C', charToString($1), "char");}
+    | STRING_LITERAL    {printf("string\n"); add('C', $1, "string");}
+    | FLOATING_NUMBER   {printf("float\n");char x[20]; sprintf(x, "%f", $1);  add('C', x, "float");}
     ;
 
 
 
-DATATYPE: INT {add("K");}
-        | BOOL {add("K");}
-        | CHAR {add("K");}
-        | STRING {add("K");}
-        | FLOAT {add("K");}
-        | VOID {add("K");}
+DATATYPE: INT     {add('K', $1, "N/A");}
+        | BOOL    {add('K', $1, "N/A");}
+        | CHAR    {add('K', $1, "N/A");}
+        | STRING  {add('K', $1, "N/A");}
+        | FLOAT   {add('K', $1, "N/A");}
+        | VOID    {add('K', $1, "N/A");}
+        ;
 %%
+char * charToString(char c) {
+    static char str[2]; // Make sure it's large enough to hold the character and the null terminator
+    str[0] = c;
+    str[1] = '\0'; // Null-terminate the string
+    return str;
+}
 
+nodeType *con(int value) {
+    nodeType *p;
 
+    /* allocate node */
+    if ((p = malloc(sizeof(nodeType))) == NULL)
+        yyerror("out of memory");
 
-void insert_type(){
-    strcpy(type, yytext);
+    /* copy information */
+    p->type = typeCon;
+    p->con.value = value;
+
+    return p;
+}
+
+nodeType *id(int i) {
+    nodeType *p;
+
+    /* allocate node */
+    if ((p = malloc(sizeof(nodeType))) == NULL)
+        yyerror("out of memory");
+
+    /* copy information */
+    p->type = typeId;
+    p->id.i = i;
+
+    return p;
+}
+
+nodeType *opr(int oper, int nops, ...) {
+    va_list ap;
+    nodeType *p;
+    int i;
+
+    /* allocate node, extending op array */
+    if ((p = malloc(sizeof(nodeType) + (nops-1) * sizeof(nodeType *))) == NULL)
+        yyerror("out of memory");
+
+    /* copy information */
+    p->type = typeOpr;
+    p->opr.oper = oper;
+    p->opr.nops = nops;
+    va_start(ap, nops);
+    for (i = 0; i < nops; i++)
+        p->opr.op[i] = va_arg(ap, nodeType*);
+    va_end(ap);
+    return p;
+}
+void add(char c, char * name, char * type){
+    if(c == 'K'){ // keyword
+        struct symbol newsymbol;
+        newsymbol.name = name;
+        newsymbol.data_type = type;
+        newsymbol.type = "Keyword";
+        newsymbol.line_no = countn;
+        symbol_table[symbol_count] = newsymbol;
+        symbol_count++;
+    }
+    else if(c == 'V'){ //variable
+        struct symbol newsymbol;
+        newsymbol.name = name;
+        newsymbol.data_type = type;
+        newsymbol.type = "Variable";
+        newsymbol.line_no = countn;
+        symbol_table[symbol_count] = newsymbol;
+        symbol_count++;
+    }
+    else if(c == 'C'){ // constant
+        struct symbol newsymbol;
+        newsymbol.name = name;
+        newsymbol.data_type = type;
+        newsymbol.type = "Const";
+        newsymbol.line_no = countn;
+        symbol_table[symbol_count] = newsymbol;
+        symbol_count++;
+    }
+    else if(c == 'S'){ // scope control {}, ()
+        struct symbol newsymbol;
+        newsymbol.name = name;
+        newsymbol.data_type = "N/A";
+        newsymbol.type = "N/A";
+        newsymbol.line_no = countn;
+        symbol_table[symbol_count] = newsymbol;
+        symbol_count++;
+    }
+    else if(c == 'O'){ // operator
+        struct symbol newsymbol;
+        newsymbol.name = name;
+        newsymbol.data_type = "N/A";
+        newsymbol.type = "Operator";
+        newsymbol.line_no = countn;
+        symbol_table[symbol_count] = newsymbol;
+        symbol_count++;
+    }
 }
 /*
 yyerror: This function is called when there's a syntax error in the input.
@@ -309,72 +369,16 @@ void yyerror(const char *s) {
     fprintf(stderr, "Error: %s\n", s);
     exit(1);
 }
-/**/
-void add(char c){
-    q = search(yytext);
-    if(!q){
-        if(c == "H"){
-            symbol_table[symbol_count].id_name = strdup(yytext);
-            symbol_table[symbol_count].data_type = strdup(type);
-            symbol_table[symbol_count].line_no = countn;
-            symbol_table[symbol_count].type = strdup("Header");
-            symbol_count++;
-        }
-        else if(c == "K"){
-            symbol_table[symbol_count].id_name = strdup(yytext);
-            symbol_table[symbol_count].data_type = strdup("N/A");
-            symbol_table[symbol_count].line_no = countn;
-            symbol_table[symbol_count].type = strdup("Keyword\t");
-            symbol_count++;
-        }
-        else if(c == "V"){
-            symbol_table[symbol_count].id_name = strdup(yytext);
-            symbol_table[symbol_count].data_type = strdup(type);
-            symbol_table[symbol_count].line_no = countn;
-            symbol_table[symbol_count].type = strdup("Variable");
-            symbol_count++;
-        }
-        else if(c == "C"){
-            symbol_table[symbol_count].id_name = strdup(yytext);
-            symbol_table[symbol_count].data_type = strdup("CONST");
-            symbol_table[symbol_count].line_no = countn;
-            symbol_table[symbol_count].type = strdup("Constant");
-            symbol_count++;
-        }
-        else if(c == "F"){
-            symbol_table[symbol_count].id_name = strdup(yytext);
-            symbol_table[symbol_count].data_type = strdup(type);
-            symbol_table[symbol_count].line_no = countn;
-            symbol_table[symbol_count].type = strdup("Function");
-            symbol_count++;
-        }
-        else if(c == "O"){
-            symbol_table[symbol_count].id_name = strdup(yytext);
-            symbol_table[symbol_count].data_type = strdup("N/A");
-            symbol_table[symbol_count].line_no = countn;
-            symbol_table[symbol_count].type = strdup("Operator");
-            symbol_count++;
-        }
-        else if(c == "S"){
-            symbol_table[symbol_count].id_name = strdup(yytext);
-            symbol_table[symbol_count].data_type = strdup("N/A");
-            symbol_table[symbol_count].line_no = countn;
-            symbol_table[symbol_count].type = strdup("Scope");
-            symbol_count++;
-        }
-    }
-}
+
 /*
 lookup_symbol: This function searches for a symbol in the symbol table by name.
 If the symbol is found, it returns its index in the table; otherwise, it returns -1.
 */
-int lookup_symbol(char *type) {
-    for (int i = symbol_count - 1; i >=0; i--) {
-        if (strcmp(symbol_table[i].id_name, type) == 0) {
-            return -1;
-            break;
+int lookup_symbol(char *name) {
+    for (int i = 0; i < symbol_count; i++) {
+        if (strcmp(symbol_table[i].name, name) == 0) {
+            return i;
         }
-        return 0;
     }
     return -1;
 }
@@ -400,19 +404,6 @@ int main(int argc, char **argv) {
     }
     yyin = input_file;
     yyparse();
-      printf("\n\n");
-	printf("\t\t\t\t\t\t\t\t PHASE 1: LEXICAL ANALYSIS \n\n");
-	printf("\nSYMBOL   DATATYPE   TYPE   LINE NUMBER \n");
-	printf("_______________________________________\n\n");
-	int i=0;
-	for(i=0; i<count; i++) {
-		printf("%s\t%s\t%s\t%d\t\n", symbol_table[i].id_name, symbol_table[i].data_type, symbol_table[i].type, symbol_table[i].line_no);
-	}
-	for(i=0;i<count;i++) {
-		free(symbol_table[i].id_name);
-		free(symbol_table[i].type);
-	}
-	printf("\n\n");
     fclose(input_file);
     return 0;
 }

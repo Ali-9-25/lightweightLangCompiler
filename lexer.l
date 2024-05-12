@@ -3,11 +3,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+int countn = 1;
 %}
 
 %option yylineno
 unary "++"|"--"
-
 
 %%
 "if"                { return IF; }
@@ -65,8 +65,10 @@ unary "++"|"--"
 
 \/\/.*              { ; }
 \/\*([^*]|\*[^/])*\*\/   { ; } 
-[ \t\n]             ; // Ignore whitespace and newline
+\t             ; // Ignore whitespace and newline
 .                   { printf("Invalid character\n"); }
+\n                  { countn++; }
+
 %%
 
 int yywrap() {
