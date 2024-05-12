@@ -81,7 +81,7 @@ extern int countn; // line count
 It can either be empty or consist of multiple statements (stmt) separated by semicolons.
 */
 stmt_list   : stmt stmt_list   {printf("stmt_list\n");}
-            | LBRACE stmt_list RBRACE stmt_list  {printf("{stmt_list}\n");}
+            | LBRACE stmt_list RBRACE stmt_list  {printf("{stmt_list}\n"); add('S', $1, "N/A"); add('S', $3, "N/A");}
             |            {printf("stmt epsilon\n");}
             ;
 
@@ -102,13 +102,13 @@ stmt: if_stmt       {printf("if statement\n");}
     | assignment_stmt   {printf("assignment statement\n");}
     | expr SEMICOLON    {printf("expression\n");}
     | return_stmt SEMICOLON   {printf("return statement\n");}
-    | BREAK SEMICOLON   {printf("break statement\n");}
-    | CONTINUE SEMICOLON   {printf("continue statement\n");}
+    | BREAK SEMICOLON   {printf("break statement\n");         add('K', $1, "N/A");}
+    | CONTINUE SEMICOLON   {printf("continue statement\n");   add('K', $1, "N/A");}
     ;
 
-return_stmt:  RETURN    {printf("return\n");}
-            | RETURN TERM   {printf("return term\n");}
-            | RETURN expr   {printf("return expr\n");}
+return_stmt:  RETURN    {printf("return\n");          add('K', $1, "N/A");}
+            | RETURN TERM   {printf("return term\n"); add('K', $1, "N/A");}
+            | RETURN expr   {printf("return expr\n"); add('K', $1, "N/A");}
             ;
 /*
 if_stmt: This rule defines the syntax for if statements. 
@@ -116,35 +116,39 @@ It can be a simple if statement or an if-else statement, both followed by a bloc
 Similarly, the rules for while_stmt, repeat_stmt, for_stmt, switch_stmt, func_decl, var_decl, 
 and const_decl define the syntax for their respective constructs.
 */
-if_stmt: IF LPAREN expr RPAREN LBRACE stmt_list RBRACE                                  {printf("if (expr) {stmt_list}\n");}
-       | IF LPAREN expr RPAREN LBRACE stmt_list RBRACE ELSE LBRACE stmt_list RBRACE     {printf("if (expr) {stmt_list} else {stmt_list}\n");}
+if_stmt: IF LPAREN expr RPAREN LBRACE stmt_list RBRACE                                  {printf("if (expr) {stmt_list}\n"); add('K', $1, "N/A"); add('S', $5, "N/A");add('S', $7, "N/A");}
+       | IF LPAREN expr RPAREN LBRACE stmt_list RBRACE ELSE LBRACE stmt_list RBRACE     {printf("if (expr) {stmt_list} else {stmt_list}\n");
+         add('K', $1, "N/A"); add('S', $5, "N/A"); add('S', $7, "N/A"); add('K', $8, "N/A"); add('S', $9, "N/A"); add('S', $11, "N/A");}
        ;
 
-while_stmt: WHILE LPAREN expr RPAREN LBRACE stmt_list RBRACE    {printf("while (expr) {stmt_list}\n");}
+while_stmt: WHILE LPAREN expr RPAREN LBRACE stmt_list RBRACE    {printf("while (expr) {stmt_list}\n");
+            add('K', $1, "N/A"); add('S', $5, "N/A"); add('S', $6, "N/A");}
           ;
 
-repeat_stmt: REPEAT LBRACE stmt_list RBRACE UNTIL LPAREN expr RPAREN SEMICOLON  {printf("repeat {stmt_list} until (expr)\n");}
+repeat_stmt: REPEAT LBRACE stmt_list RBRACE UNTIL LPAREN expr RPAREN SEMICOLON  {printf("repeat {stmt_list} until (expr)\n");
+            add('K', $1, "N/A"); add('S', $2, "N/A"); add('S', $4, "N/A"); add('K', $5, "N/A");}
            ;
 
-for_stmt: FOR LPAREN var_decl expr SEMICOLON IDENTIFIER ASSIGN expr RPAREN LBRACE stmt_list RBRACE {printf("for (assignment; expr; assignment) {stmt_list}\n");}
+for_stmt: FOR LPAREN var_decl expr SEMICOLON IDENTIFIER ASSIGN expr RPAREN LBRACE stmt_list RBRACE {printf("for (assignment; expr; assignment) {stmt_list}\n"); 
+           add('K', $1, "N/A"); add('V', $6, "N/A"); add('O', $7, "N/A"); add('S', $10, "N/A"); add('S', $12, "N/A");}
         ;
 
-switch_stmt: SWITCH LPAREN expr RPAREN LBRACE case_list RBRACE  {printf("switch (expr) {case_list}\n");}
+switch_stmt: SWITCH LPAREN expr RPAREN LBRACE case_list RBRACE  {printf("switch (expr) {case_list}\n"); add('K', $1, "N/A"); add('S', $5, "N/A");add('S', $7, "N/A");}
             ;
 
-case_list:    CASE expr COLON stmt_list case_list   {printf("case expr: stmt_list case_list\n");}
-            | CASE TERM COLON stmt_list  case_list  {printf("case term: stmt_list case_list\n");}
-            | CASE expr COLON stmt_list             {printf("case expr: stmt_list\n");}
-            | CASE TERM COLON stmt_list             {printf("case term: stmt_list\n");}
-            | DEFAULT COLON stmt_list               {printf("default: stmt_list\n");}
+case_list:    CASE expr COLON stmt_list case_list   {printf("case expr: stmt_list case_list\n"); add('K', $1, "N/A");}
+            | CASE TERM COLON stmt_list  case_list  {printf("case term: stmt_list case_list\n"); add('K', $1, "N/A");}
+            | CASE expr COLON stmt_list             {printf("case expr: stmt_list\n");           add('K', $1, "N/A");}
+            | CASE TERM COLON stmt_list             {printf("case term: stmt_list\n");           add('K', $1, "N/A");}
+            | DEFAULT COLON stmt_list               {printf("default: stmt_list\n");             add('K', $1, "N/A");}
             ;  
 
-func_decl: DATATYPE IDENTIFIER LPAREN dec_param_list RPAREN LBRACE stmt_list RBRACE  {printf("data_type identifier (dec_param_list) {stmt_list}\n");}
-         | DATATYPE IDENTIFIER LPAREN dec_param_list RPAREN SEMICOLON                {printf("data_type identifier () {stmt_list}\n");}
+func_decl: DATATYPE IDENTIFIER LPAREN dec_param_list RPAREN LBRACE stmt_list RBRACE  {printf("data_type identifier (dec_param_list) {stmt_list}\n"); add('K', $1, "N/A"); add('F', $2, $1);}
+         | DATATYPE IDENTIFIER LPAREN dec_param_list RPAREN SEMICOLON                {printf("data_type identifier () {stmt_list}\n");               add('K', $1, "N/A"); add('F', $2, $1);}
          ;
 
-func_call: IDENTIFIER LPAREN  call_param_list RPAREN  {printf("identifier (call_param_list) ;\n");}
-         | IDENTIFIER LPAREN RPAREN                   {printf("identifier () ;\n");}
+func_call: IDENTIFIER LPAREN  call_param_list RPAREN  {printf("identifier (call_param_list) ;\n"); add('F', $1, "N/A");}
+         | IDENTIFIER LPAREN RPAREN                   {printf("identifier () ;\n");                add('F', $1, "N/A");}
          ;
 
 /* param_list: param_list IDENTIFIER
@@ -152,8 +156,8 @@ func_call: IDENTIFIER LPAREN  call_param_list RPAREN  {printf("identifier (call_
           | /* Empty */
           /* ; */
 
-dec_param_list: DATATYPE IDENTIFIER COMMA dec_param_list        {printf("data_type identifier , dec_param_list\n");}
-              | DATATYPE IDENTIFIER                             {printf("data_type identifier\n");}
+dec_param_list: DATATYPE IDENTIFIER COMMA dec_param_list        {printf("data_type identifier , dec_param_list\n"); add('K', $1, "N/A"); add('V', $2, $1);}
+              | DATATYPE IDENTIFIER                             {printf("data_type identifier\n");                  add('K', $1, "N/A"); add('V', $2, $1);}
               ;
 
 call_param_list: expr COMMA call_param_list      {printf("identifier , call_param_list\n");}
@@ -166,16 +170,16 @@ call_param_list: expr COMMA call_param_list      {printf("identifier , call_para
 var_decl: This rule defines the syntax for variable declarations, 
 where a variable is declared with the VAR keyword followed by an identifier and a semicolon.
 */
-var_decl: DATATYPE IDENTIFIER SEMICOLON              {printf("data_type identifier; \n");}
-        | DATATYPE IDENTIFIER ASSIGN TERM SEMICOLON  {printf("data_type identifier = term ;\n");}
-        | DATATYPE IDENTIFIER ASSIGN expr SEMICOLON  {printf("data_type identifier = expr ;\n");}
+var_decl: DATATYPE IDENTIFIER SEMICOLON              {printf("data_type identifier; \n");        add('K', $1, "N/A"); add('V', $2, $1);}
+        | DATATYPE IDENTIFIER ASSIGN TERM SEMICOLON  {printf("data_type identifier = term ;\n"); add('K', $1, "N/A"); add('V', $2, $1); add('O', $3, "N/A");}
+        | DATATYPE IDENTIFIER ASSIGN expr SEMICOLON  {printf("data_type identifier = expr ;\n"); add('K', $1, "N/A"); add('V', $2, $1); add('O', $3, "N/A");}
         ;
 
 /*
 const_decl: This rule defines the syntax for constant declarations, 
 where a constant is declared with the CONST keyword followed by an identifier, an assignment operator, a number, and a semicolon.
 */
-const_decl: CONST DATATYPE IDENTIFIER ASSIGN TERM SEMICOLON  {printf("const data_type identifier = term ;\n");}
+const_decl: CONST DATATYPE IDENTIFIER ASSIGN TERM SEMICOLON  {printf("const data_type identifier = term ;\n"); add('K', $1, "N/A"); add('V', $3, $2); add('O', $4, "N/A");}
           ;
 
 /*
@@ -245,22 +249,22 @@ TERM: NUMBER
     | FLOATING_NUMBER
     ; */
     
-TERM: NUMBER            {printf("number\n");char x[20]; sprintf(x, "%d", $1); add('C', x, "int");}
-    | TRUE              {printf("true\n");   add('C', "true", "bool");}
-    | FALSE             {printf("false\n");  add('C', "false", "bool");}
-    | CHARACTER_LITERAL {printf("char\n");   add('C', charToString($1), "char");}
-    | STRING_LITERAL    {printf("string\n"); add('C', $1, "string");}
-    | FLOATING_NUMBER   {printf("float\n");char x[20]; sprintf(x, "%f", $1);  add('C', x, "float");}
+TERM: NUMBER            {printf("number\n");char x[20]; sprintf(x, "%d", $1); add('C', x, "int");  $$ = $1}
+    | TRUE              {printf("true\n");   add('C', "true", "bool");                             $$ = $1}
+    | FALSE             {printf("false\n");  add('C', "false", "bool");                            $$ = $1}                  
+    | CHARACTER_LITERAL {printf("char\n");   add('C', charToString($1), "char");                   $$ = $1}
+    | STRING_LITERAL    {printf("string\n"); add('C', $1, "string");                               $$ = $1}
+    | FLOATING_NUMBER   {printf("float\n");char x[20]; sprintf(x, "%f", $1);  add('C', x, "float");$$ = $1}
     ;
 
 
 
-DATATYPE: INT     {add('K', $1, "N/A");}
-        | BOOL    {add('K', $1, "N/A");}
-        | CHAR    {add('K', $1, "N/A");}
-        | STRING  {add('K', $1, "N/A");}
-        | FLOAT   {add('K', $1, "N/A");}
-        | VOID    {add('K', $1, "N/A");}
+DATATYPE: INT     {add('K', $1, "N/A"); $$ = $1}
+        | BOOL    {add('K', $1, "N/A"); $$ = $1}
+        | CHAR    {add('K', $1, "N/A"); $$ = $1}
+        | STRING  {add('K', $1, "N/A"); $$ = $1}
+        | FLOAT   {add('K', $1, "N/A"); $$ = $1}
+        | VOID    {add('K', $1, "N/A"); $$ = $1}
         ;
 %%
 char * charToString(char c) {
@@ -362,6 +366,15 @@ void add(char c, char * name, char * type){
         newsymbol.line_no = countn;
         symbol_table[symbol_count] = newsymbol;
         symbol_count++;
+    }
+    else if(c == 'F'){
+        struct symbol newsymbol;
+        newsymbol.name = name;
+        newsymbol.data_type = type;
+        newsymbol.type = "Function";
+        newsymbol.line_no = countn;
+        symbol_table[symbol_count] = newsymbol;
+        symbol_count++; 
     }
 }
 /*
