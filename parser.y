@@ -126,9 +126,18 @@ It can be a simple if statement or an if-else statement, both followed by a bloc
 Similarly, the rules for while_stmt, repeat_stmt, for_stmt, switch_stmt, func_decl, var_decl, 
 and const_decl define the syntax for their respective constructs.
 */
-if_stmt: IF {add("K");} LPAREN expr RPAREN LBRACE {add("S");} stmt_list RBRACE {add("S");}                                                                  {printf("if (expr) {stmt_list}\n");}
+/* if_stmt: IF {add("K");} LPAREN expr RPAREN LBRACE {add("S");} stmt_list RBRACE {add("S");}                                                                  {printf("if (expr) {stmt_list}\n");}
        | IF {add("K");} LPAREN expr RPAREN LBRACE {add("S");} stmt_list RBRACE {add("S");} ELSE {add("K");} LBRACE {add("S");} stmt_list RBRACE {add("S");} {printf("if (expr) {stmt_list} else {stmt_list}\n");}
+       ; */
+if_stmt: IF {add("K");} LPAREN expr RPAREN LBRACE {add("S");} stmt_list RBRACE {add("S");} else_stmt                                                                 {printf("if (expr) {stmt_list}\n");}
        ;
+
+else_stmt: ELSE {add("K");} LBRACE {add("S");} stmt_list RBRACE {add("S");} {printf("else {stmt_list}\n");}
+         | {printf("else epsilon\n");}
+         ;
+/* if_stmt: IF LPAREN expr RPAREN LBRACE stmt_list RBRACE                                                                  {printf("if (expr) {stmt_list}\n");}
+       | IF LPAREN expr RPAREN LBRACE stmt_list RBRACE ELSE LBRACE  stmt_list RBRACE  {printf("if (expr) {stmt_list} else {stmt_list}\n");}
+       ; */
 
 while_stmt: WHILE{ add("K"); } LPAREN expr RPAREN LBRACE{ add("S"); } stmt_list RBRACE {add("S"); printf("while (expr) {stmt_list}\n");}
           ;
@@ -155,7 +164,7 @@ func_decl: DATATYPE IDENTIFIER {add("F");} LPAREN dec_param_list RPAREN LBRACE {
 
 func_call: IDENTIFIER {add("F");} LPAREN  call_param_list RPAREN  {printf("identifier (call_param_list) ;\n");}
          /* | IDENTIFIER {add("F");} LPAREN RPAREN                   {printf("identifier () ;\n");} */
-         |
+         /* | */
          ;
 
 /* param_list: param_list IDENTIFIER
@@ -165,23 +174,28 @@ func_call: IDENTIFIER {add("F");} LPAREN  call_param_list RPAREN  {printf("ident
 
 dec_param_list: DATATYPE IDENTIFIER {add("V");} COMMA dec_param_list        {printf("data_type identifier , dec_param_list\n");}
               | DATATYPE IDENTIFIER {add("V");}                             {printf("data_type identifier\n");}
-              |
+              |                                                             {printf("epsilon\n");}
               ;
 
-call_param_list: expr COMMA call_param_list     {printf("identifier , call_param_list\n");}
-               | expr                           {printf("data_type identifier\n");}
-               | TERM COMMA call_param_list     {printf("term , call_param_list\n");}
-               | TERM                           {printf("term\n");}
+call_param_list: expr call_param_list_cont   {printf("identifier , call_param_list\n");}
+               | TERM call_param_list_cont  {printf("term\n");}
+               |                            {printf("epsilon\n");}
                ;
+
+call_param_list_cont: COMMA call_param_list {printf(", call_param_list\n");}
+                    ;
 
 /*
 var_decl: This rule defines the syntax for variable declarations, 
 where a variable is declared with the VAR keyword followed by an identifier and a semicolon.
 */
 var_decl: DATATYPE IDENTIFIER {add("V");} SEMICOLON             {printf("data_type identifier; \n");}
-        | DATATYPE IDENTIFIER {add("V");} ASSIGN {add("O");} TERM SEMICOLON {printf("data_type identifier = term ;\n");} 
-        | DATATYPE IDENTIFIER {add("V");} ASSIGN {add("O");} expr SEMICOLON  {printf("data_type identifier = expr ;\n");}
+        | DATATYPE IDENTIFIER {add("V");} ASSIGN {add("O");} var_decl_cont {printf("data_type identifier = term ;\n");} 
         ;
+
+var_decl_cont: TERM SEMICOLON {printf("term ;\n");}
+            | expr SEMICOLON {printf("expr ;\n");}
+            ;
 
 /*
 const_decl: This rule defines the syntax for constant declarations, 
@@ -194,9 +208,12 @@ const_decl: CONST{ add("K");} DATATYPE IDENTIFIER{ add("V");} ASSIGN { add("O");
 assignment_stmt: This rule defines the syntax for assignment statements, 
 where an identifier is assigned the value of an expression followed by a semicolon.
 */
-assignment_stmt: IDENTIFIER {add("V");} ASSIGN { add("O");} TERM SEMICOLON   {printf("identifier = term ;\n");}
-               | IDENTIFIER {add("V");} ASSIGN { add("O");} expr SEMICOLON   {printf("identifier = expr ;\n");}
+assignment_stmt: IDENTIFIER {add("V");} ASSIGN { add("O");} assignment_stmt_cont   {printf("identifier = term ;\n");}
                ;
+
+assignment_stmt_cont: TERM SEMICOLON   {printf("identifier = term ;\n");}
+                    | expr SEMICOLON   {printf("identifier = expr ;\n");}
+                    ;
 
 /*
 expr: This rule defines arithmetic expressions, 
