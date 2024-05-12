@@ -180,33 +180,34 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include "lex.yy.c"
 /* Symbol table structure */
-struct datatype {
-    char *id_name;
+struct symbol {
+    char* id_name;
     char* data_type; // 0 for int, 1 for float
-    char * type;  // keyword, constant, variable
+    char* type;  // keyword, constant, variable
     int line_no; // line number too check if the variable is initialized or if the closest scope control token
 };
 //TODO: Add unary operators such as ++, --, !, ~, etc.
 
 #define MAX_SYMBOLS 1000
 struct symbol symbol_table[MAX_SYMBOLS];
-int symbol_count = 0;
-// int count = 0;
-extern FILE *yyin;
+
+
+// extern FILE *yyin;
 
 void yyerror(const char *s);
 int yylex();
-int lookup_symbol(char *name);
-void add_symbol(char *name, int type, int initialized);
 int yywrap();
+void add(char);
 void insert_type();
-void add(char c);
+int lookup_symbol(char *name);
+// void add_symbol(char *name, int type, int initialized);
 
 char type[10];
 int q = 0;
-
-extern int countn;
+int symbol_count = 0;
+int countn = 0;
 
 
 /* Enabling traces.  */
@@ -229,8 +230,11 @@ extern int countn;
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 35 "parser.y"
+#line 36 "parser.y"
 {
+    int intval;
+    float floatval;
+    char *strval;
     int num;   // integer
     char *str; // string 
     float f;   // float
@@ -245,7 +249,7 @@ typedef union YYSTYPE
     } term;
 }
 /* Line 193 of yacc.c.  */
-#line 249 "y.tab.c"
+#line 253 "y.tab.c"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -258,7 +262,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 262 "y.tab.c"
+#line 266 "y.tab.c"
 
 #ifdef short
 # undef short
@@ -624,27 +628,27 @@ static const yytype_int16 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    93,    93,    94,    94,    94,    95,   103,   104,   105,
-     106,   107,   108,   110,   111,   112,   113,   114,   115,   116,
-     119,   119,   120,   120,   121,   121,   132,   132,   132,   132,
-     135,   135,   135,   135,   136,   142,   142,   142,   145,   145,
-     145,   145,   145,   148,   148,   148,   148,   148,   148,   151,
-     151,   151,   151,   154,   154,   155,   155,   158,   158,   161,
-     161,   161,   161,   165,   165,   175,   175,   176,   176,   177,
-     180,   181,   182,   185,   192,   192,   193,   193,   193,   196,
-     197,   204,   204,   204,   204,   211,   211,   211,   214,   215,
-     223,   223,   223,   224,   224,   224,   225,   225,   225,   226,
-     226,   226,   227,   227,   227,   228,   228,   228,   229,   229,
-     229,   230,   230,   230,   231,   231,   231,   232,   232,   232,
-     233,   233,   233,   234,   234,   234,   239,   239,   240,   240,
-     241,   241,   242,   242,   243,   243,   244,   244,   245,   245,
-     246,   246,   247,   247,   248,   248,   249,   249,   250,   250,
-     251,   251,   252,   252,   253,   254,   254,   255,   255,   256,
-     256,   257,   257,   258,   258,   259,   259,   260,   260,   261,
-     261,   262,   262,   263,   263,   264,   264,   265,   265,   266,
-     266,   267,   268,   268,   269,   281,   281,   282,   282,   283,
-     283,   284,   284,   285,   285,   286,   286,   291,   292,   293,
-     294,   295,   296
+       0,    97,    97,    98,    98,    98,    99,   107,   108,   109,
+     110,   111,   112,   114,   115,   116,   117,   118,   119,   120,
+     123,   123,   124,   124,   125,   125,   136,   136,   136,   136,
+     139,   139,   139,   139,   140,   146,   146,   146,   149,   149,
+     149,   149,   149,   152,   152,   152,   152,   152,   152,   155,
+     155,   155,   155,   158,   158,   159,   159,   162,   162,   165,
+     165,   165,   165,   169,   169,   179,   179,   180,   180,   181,
+     184,   185,   186,   189,   196,   196,   197,   197,   197,   200,
+     201,   208,   208,   208,   208,   215,   215,   215,   218,   219,
+     227,   227,   227,   228,   228,   228,   229,   229,   229,   230,
+     230,   230,   231,   231,   231,   232,   232,   232,   233,   233,
+     233,   234,   234,   234,   235,   235,   235,   236,   236,   236,
+     237,   237,   237,   238,   238,   238,   243,   243,   244,   244,
+     245,   245,   246,   246,   247,   247,   248,   248,   249,   249,
+     250,   250,   251,   251,   252,   252,   253,   253,   254,   254,
+     255,   255,   256,   256,   257,   258,   258,   259,   259,   260,
+     260,   261,   261,   262,   262,   263,   263,   264,   264,   265,
+     265,   266,   266,   267,   267,   268,   268,   269,   269,   270,
+     270,   271,   272,   272,   273,   285,   285,   286,   286,   287,
+     287,   288,   288,   289,   289,   290,   290,   295,   296,   297,
+     298,   299,   300
 };
 #endif
 
@@ -1892,1013 +1896,1013 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 93 "parser.y"
+#line 97 "parser.y"
     {printf("stmt_list\n");}
     break;
 
   case 3:
-#line 94 "parser.y"
-    {add("S");}
+#line 98 "parser.y"
+    {add('S');}
     break;
 
   case 4:
-#line 94 "parser.y"
-    {add("S");}
+#line 98 "parser.y"
+    {add('S');}
     break;
 
   case 5:
-#line 94 "parser.y"
+#line 98 "parser.y"
     {printf("{stmt_list}\n");}
     break;
 
   case 6:
-#line 95 "parser.y"
+#line 99 "parser.y"
     {printf("stmt epsilon\n");}
     break;
 
   case 7:
-#line 103 "parser.y"
+#line 107 "parser.y"
     {printf("if statement\n");}
     break;
 
   case 8:
-#line 104 "parser.y"
+#line 108 "parser.y"
     {printf("while statement\n");}
     break;
 
   case 9:
-#line 105 "parser.y"
+#line 109 "parser.y"
     {printf("repeat statement\n");}
     break;
 
   case 10:
-#line 106 "parser.y"
+#line 110 "parser.y"
     {printf("for statement\n");}
     break;
 
   case 11:
-#line 107 "parser.y"
+#line 111 "parser.y"
     {printf("switch statement\n");}
     break;
 
   case 12:
-#line 108 "parser.y"
+#line 112 "parser.y"
     {printf("function declaration\n");}
     break;
 
   case 13:
-#line 110 "parser.y"
+#line 114 "parser.y"
     {printf("variable declaration\n");}
     break;
 
   case 14:
-#line 111 "parser.y"
+#line 115 "parser.y"
     {printf("constant declaration\n");}
     break;
 
   case 15:
-#line 112 "parser.y"
+#line 116 "parser.y"
     {printf("assignment statement\n");}
     break;
 
   case 16:
-#line 113 "parser.y"
+#line 117 "parser.y"
     {printf("expression\n");}
     break;
 
   case 17:
-#line 114 "parser.y"
+#line 118 "parser.y"
     {printf("return statement\n");}
     break;
 
   case 18:
-#line 115 "parser.y"
-    {printf("break statement\n"); add("K");}
+#line 119 "parser.y"
+    {printf("break statement\n"); add('K');}
     break;
 
   case 19:
-#line 116 "parser.y"
-    {printf("continue statement\n"); add("K");}
+#line 120 "parser.y"
+    {printf("continue statement\n"); add('K');}
     break;
 
   case 20:
-#line 119 "parser.y"
-    {add("K");}
+#line 123 "parser.y"
+    {add('K');}
     break;
 
   case 21:
-#line 119 "parser.y"
+#line 123 "parser.y"
     {printf("return\n");}
     break;
 
   case 22:
-#line 120 "parser.y"
-    {add("K");}
+#line 124 "parser.y"
+    {add('K');}
     break;
 
   case 23:
-#line 120 "parser.y"
+#line 124 "parser.y"
     {printf("return term\n");}
     break;
 
   case 24:
-#line 121 "parser.y"
-    {add("K");}
+#line 125 "parser.y"
+    {add('K');}
     break;
 
   case 25:
-#line 121 "parser.y"
+#line 125 "parser.y"
     {printf("return expr\n");}
     break;
 
   case 26:
-#line 132 "parser.y"
-    {add("K");}
+#line 136 "parser.y"
+    {add('K');}
     break;
 
   case 27:
-#line 132 "parser.y"
-    {add("S");}
+#line 136 "parser.y"
+    {add('S');}
     break;
 
   case 28:
-#line 132 "parser.y"
-    {add("S");}
+#line 136 "parser.y"
+    {add('S');}
     break;
 
   case 29:
-#line 132 "parser.y"
+#line 136 "parser.y"
     {printf("if (expr) {stmt_list}\n");}
     break;
 
   case 30:
-#line 135 "parser.y"
-    {add("K");}
+#line 139 "parser.y"
+    {add('K');}
     break;
 
   case 31:
-#line 135 "parser.y"
-    {add("S");}
+#line 139 "parser.y"
+    {add('S');}
     break;
 
   case 32:
-#line 135 "parser.y"
-    {add("S");}
+#line 139 "parser.y"
+    {add('S');}
     break;
 
   case 33:
-#line 135 "parser.y"
+#line 139 "parser.y"
     {printf("else {stmt_list}\n");}
     break;
 
   case 34:
-#line 136 "parser.y"
+#line 140 "parser.y"
     {printf("else epsilon\n");}
     break;
 
   case 35:
-#line 142 "parser.y"
-    { add("K"); }
+#line 146 "parser.y"
+    { add('K'); }
     break;
 
   case 36:
-#line 142 "parser.y"
-    { add("S"); }
+#line 146 "parser.y"
+    { add('S'); }
     break;
 
   case 37:
-#line 142 "parser.y"
-    {add("S"); printf("while (expr) {stmt_list}\n");}
+#line 146 "parser.y"
+    {add('S'); printf("while (expr) {stmt_list}\n");}
     break;
 
   case 38:
-#line 145 "parser.y"
-    { add("K"); }
+#line 149 "parser.y"
+    { add('K'); }
     break;
 
   case 39:
-#line 145 "parser.y"
-    { add("S"); }
+#line 149 "parser.y"
+    { add('S'); }
     break;
 
   case 40:
-#line 145 "parser.y"
-    { add("S"); }
+#line 149 "parser.y"
+    { add('S'); }
     break;
 
   case 41:
-#line 145 "parser.y"
-    { add("K"); }
+#line 149 "parser.y"
+    { add('K'); }
     break;
 
   case 42:
-#line 145 "parser.y"
+#line 149 "parser.y"
     {printf("repeat {stmt_list} until (expr)\n");}
     break;
 
   case 43:
-#line 148 "parser.y"
-    { add("K"); }
+#line 152 "parser.y"
+    { add('K'); }
     break;
 
   case 44:
-#line 148 "parser.y"
-    { add("V"); }
+#line 152 "parser.y"
+    { add('V'); }
     break;
 
   case 45:
-#line 148 "parser.y"
-    { add("O");}
+#line 152 "parser.y"
+    { add('O');}
     break;
 
   case 46:
-#line 148 "parser.y"
-    {add("S");}
+#line 152 "parser.y"
+    {add('S');}
     break;
 
   case 47:
-#line 148 "parser.y"
-    {add("S");}
+#line 152 "parser.y"
+    {add('S');}
     break;
 
   case 48:
-#line 148 "parser.y"
+#line 152 "parser.y"
     {printf("for (assignment; expr; assignment) {stmt_list}\n");}
     break;
 
   case 49:
-#line 151 "parser.y"
-    {add("K");}
+#line 155 "parser.y"
+    {add('K');}
     break;
 
   case 50:
-#line 151 "parser.y"
-    {add("S");}
+#line 155 "parser.y"
+    {add('S');}
     break;
 
   case 51:
-#line 151 "parser.y"
-    { add("S");}
+#line 155 "parser.y"
+    { add('S');}
     break;
 
   case 52:
-#line 151 "parser.y"
+#line 155 "parser.y"
     {printf("switch (expr) {case_list}\n");}
     break;
 
   case 53:
-#line 154 "parser.y"
-    { add("K");}
+#line 158 "parser.y"
+    { add('K');}
     break;
 
   case 54:
-#line 154 "parser.y"
+#line 158 "parser.y"
     {printf("case expr: stmt_list case_list\n");}
     break;
 
   case 55:
-#line 155 "parser.y"
-    { add("K");}
+#line 159 "parser.y"
+    { add('K');}
     break;
 
   case 56:
-#line 155 "parser.y"
+#line 159 "parser.y"
     {printf("case term: stmt_list case_list\n");}
     break;
 
   case 57:
-#line 158 "parser.y"
-    { add("K");}
+#line 162 "parser.y"
+    { add('K');}
     break;
 
   case 58:
-#line 158 "parser.y"
+#line 162 "parser.y"
     {printf("default: stmt_list\n");}
     break;
 
   case 59:
-#line 161 "parser.y"
-    {add("F");}
+#line 165 "parser.y"
+    {add('F');}
     break;
 
   case 60:
-#line 161 "parser.y"
-    { add("S");}
+#line 165 "parser.y"
+    { add('S');}
     break;
 
   case 61:
-#line 161 "parser.y"
-    {add("S");}
+#line 165 "parser.y"
+    {add('S');}
     break;
 
   case 62:
-#line 161 "parser.y"
+#line 165 "parser.y"
     {printf("data_type identifier (dec_param_list) {stmt_list}\n");}
     break;
 
   case 63:
-#line 165 "parser.y"
-    {add("F");}
+#line 169 "parser.y"
+    {add('F');}
     break;
 
   case 64:
-#line 165 "parser.y"
+#line 169 "parser.y"
     {printf("identifier (call_param_list) ;\n");}
     break;
 
   case 65:
-#line 175 "parser.y"
-    {add("V");}
+#line 179 "parser.y"
+    {add('V');}
     break;
 
   case 66:
-#line 175 "parser.y"
+#line 179 "parser.y"
     {printf("data_type identifier , dec_param_list\n");}
     break;
 
   case 67:
-#line 176 "parser.y"
-    {add("V");}
+#line 180 "parser.y"
+    {add('V');}
     break;
 
   case 68:
-#line 176 "parser.y"
+#line 180 "parser.y"
     {printf("data_type identifier\n");}
     break;
 
   case 69:
-#line 177 "parser.y"
+#line 181 "parser.y"
     {printf("epsilon\n");}
     break;
 
   case 70:
-#line 180 "parser.y"
+#line 184 "parser.y"
     {printf("identifier , call_param_list\n");}
     break;
 
   case 71:
-#line 181 "parser.y"
+#line 185 "parser.y"
     {printf("term\n");}
     break;
 
   case 72:
-#line 182 "parser.y"
+#line 186 "parser.y"
     {printf("epsilon\n");}
     break;
 
   case 73:
-#line 185 "parser.y"
+#line 189 "parser.y"
     {printf(", call_param_list\n");}
     break;
 
   case 74:
-#line 192 "parser.y"
-    {add("V");}
+#line 196 "parser.y"
+    {add('V');}
     break;
 
   case 75:
-#line 192 "parser.y"
+#line 196 "parser.y"
     {printf("data_type identifier; \n");}
     break;
 
   case 76:
-#line 193 "parser.y"
-    {add("V");}
+#line 197 "parser.y"
+    {add('V');}
     break;
 
   case 77:
-#line 193 "parser.y"
-    {add("O");}
+#line 197 "parser.y"
+    {add('O');}
     break;
 
   case 78:
-#line 193 "parser.y"
+#line 197 "parser.y"
     {printf("data_type identifier = term ;\n");}
     break;
 
   case 79:
-#line 196 "parser.y"
+#line 200 "parser.y"
     {printf("term ;\n");}
     break;
 
   case 80:
-#line 197 "parser.y"
+#line 201 "parser.y"
     {printf("expr ;\n");}
     break;
 
   case 81:
-#line 204 "parser.y"
-    { add("K");}
+#line 208 "parser.y"
+    { add('K');}
     break;
 
   case 82:
-#line 204 "parser.y"
-    { add("V");}
+#line 208 "parser.y"
+    { add('V');}
     break;
 
   case 83:
-#line 204 "parser.y"
-    { add("O");}
+#line 208 "parser.y"
+    { add('O');}
     break;
 
   case 84:
-#line 204 "parser.y"
+#line 208 "parser.y"
     {printf("const data_type identifier = term ;\n");}
     break;
 
   case 85:
-#line 211 "parser.y"
-    {add("V");}
+#line 215 "parser.y"
+    {add('V');}
     break;
 
   case 86:
-#line 211 "parser.y"
-    { add("O");}
+#line 215 "parser.y"
+    { add('O');}
     break;
 
   case 87:
-#line 211 "parser.y"
+#line 215 "parser.y"
     {printf("identifier = term ;\n");}
     break;
 
   case 88:
-#line 214 "parser.y"
+#line 218 "parser.y"
     {printf("identifier = term ;\n");}
     break;
 
   case 89:
-#line 215 "parser.y"
+#line 219 "parser.y"
     {printf("identifier = expr ;\n");}
     break;
 
   case 90:
-#line 223 "parser.y"
-    {add("O");}
+#line 227 "parser.y"
+    {add('O');}
     break;
 
   case 91:
-#line 223 "parser.y"
-    {add("V");}
+#line 227 "parser.y"
+    {add('V');}
     break;
 
   case 92:
-#line 223 "parser.y"
+#line 227 "parser.y"
     {printf("expr == identifer\n");}
     break;
 
   case 93:
-#line 224 "parser.y"
-    {add("O");}
+#line 228 "parser.y"
+    {add('O');}
     break;
 
   case 94:
-#line 224 "parser.y"
-    {add("V");}
+#line 228 "parser.y"
+    {add('V');}
     break;
 
   case 95:
-#line 224 "parser.y"
+#line 228 "parser.y"
     {printf("expr != identifer\n");}
     break;
 
   case 96:
-#line 225 "parser.y"
-    {add("O");}
+#line 229 "parser.y"
+    {add('O');}
     break;
 
   case 97:
-#line 225 "parser.y"
-    {add("V");}
+#line 229 "parser.y"
+    {add('V');}
     break;
 
   case 98:
-#line 225 "parser.y"
+#line 229 "parser.y"
     {printf("expr < identifer\n");}
     break;
 
   case 99:
-#line 226 "parser.y"
-    {add("O");}
+#line 230 "parser.y"
+    {add('O');}
     break;
 
   case 100:
-#line 226 "parser.y"
-    {add("V");}
+#line 230 "parser.y"
+    {add('V');}
     break;
 
   case 101:
-#line 226 "parser.y"
+#line 230 "parser.y"
     {printf("expr > identifer\n");}
     break;
 
   case 102:
-#line 227 "parser.y"
-    {add("O");}
+#line 231 "parser.y"
+    {add('O');}
     break;
 
   case 103:
-#line 227 "parser.y"
-    {add("V");}
+#line 231 "parser.y"
+    {add('V');}
     break;
 
   case 104:
-#line 227 "parser.y"
+#line 231 "parser.y"
     {printf("expr <= identifer\n");}
     break;
 
   case 105:
-#line 228 "parser.y"
-    {add("O");}
+#line 232 "parser.y"
+    {add('O');}
     break;
 
   case 106:
-#line 228 "parser.y"
-    {add("V");}
+#line 232 "parser.y"
+    {add('V');}
     break;
 
   case 107:
-#line 228 "parser.y"
+#line 232 "parser.y"
     {printf("expr >= identifer\n");}
     break;
 
   case 108:
-#line 229 "parser.y"
-    {add("O");}
+#line 233 "parser.y"
+    {add('O');}
     break;
 
   case 109:
-#line 229 "parser.y"
-    {add("V");}
+#line 233 "parser.y"
+    {add('V');}
     break;
 
   case 110:
-#line 229 "parser.y"
+#line 233 "parser.y"
     {printf("expr / identifer\n");}
     break;
 
   case 111:
-#line 230 "parser.y"
-    {add("O");}
+#line 234 "parser.y"
+    {add('O');}
     break;
 
   case 112:
-#line 230 "parser.y"
-    {add("V");}
+#line 234 "parser.y"
+    {add('V');}
     break;
 
   case 113:
-#line 230 "parser.y"
+#line 234 "parser.y"
     {printf("expr * identifer\n");}
     break;
 
   case 114:
-#line 231 "parser.y"
-    {add("O");}
+#line 235 "parser.y"
+    {add('O');}
     break;
 
   case 115:
-#line 231 "parser.y"
-    {add("V");}
+#line 235 "parser.y"
+    {add('V');}
     break;
 
   case 116:
-#line 231 "parser.y"
+#line 235 "parser.y"
     {printf("expr - identifer\n");}
     break;
 
   case 117:
-#line 232 "parser.y"
-    {add("O");}
+#line 236 "parser.y"
+    {add('O');}
     break;
 
   case 118:
-#line 232 "parser.y"
-    {add("V");}
+#line 236 "parser.y"
+    {add('V');}
     break;
 
   case 119:
-#line 232 "parser.y"
+#line 236 "parser.y"
     {printf("expr + identifer\n");}
     break;
 
   case 120:
-#line 233 "parser.y"
-    {add("O");}
+#line 237 "parser.y"
+    {add('O');}
     break;
 
   case 121:
-#line 233 "parser.y"
-    {add("V");}
+#line 237 "parser.y"
+    {add('V');}
     break;
 
   case 122:
-#line 233 "parser.y"
+#line 237 "parser.y"
     {printf("unary expr\n");}
     break;
 
   case 123:
-#line 234 "parser.y"
-    {add("V");}
+#line 238 "parser.y"
+    {add('V');}
     break;
 
   case 124:
-#line 234 "parser.y"
-    {add("O");}
+#line 238 "parser.y"
+    {add('O');}
     break;
 
   case 125:
-#line 234 "parser.y"
+#line 238 "parser.y"
     {printf("identifer unary\n");}
     break;
 
   case 126:
-#line 239 "parser.y"
-    {add("O");}
+#line 243 "parser.y"
+    {add('O');}
     break;
 
   case 127:
-#line 239 "parser.y"
+#line 243 "parser.y"
     {printf("expr + term\n");}
     break;
 
   case 128:
-#line 240 "parser.y"
-    {add("O");}
+#line 244 "parser.y"
+    {add('O');}
     break;
 
   case 129:
-#line 240 "parser.y"
+#line 244 "parser.y"
     {printf("expr - term\n");}
     break;
 
   case 130:
-#line 241 "parser.y"
-    {add("O");}
+#line 245 "parser.y"
+    {add('O');}
     break;
 
   case 131:
-#line 241 "parser.y"
+#line 245 "parser.y"
     {printf("expr * term\n");}
     break;
 
   case 132:
-#line 242 "parser.y"
-    {add("O");}
+#line 246 "parser.y"
+    {add('O');}
     break;
 
   case 133:
-#line 242 "parser.y"
+#line 246 "parser.y"
     {printf("expr / term\n");}
     break;
 
   case 134:
-#line 243 "parser.y"
-    {add("O");}
+#line 247 "parser.y"
+    {add('O');}
     break;
 
   case 135:
-#line 243 "parser.y"
+#line 247 "parser.y"
     {printf("expr == term\n");}
     break;
 
   case 136:
-#line 244 "parser.y"
-    {add("O");}
+#line 248 "parser.y"
+    {add('O');}
     break;
 
   case 137:
-#line 244 "parser.y"
+#line 248 "parser.y"
     {printf("expr != term\n");}
     break;
 
   case 138:
-#line 245 "parser.y"
-    {add("O");}
+#line 249 "parser.y"
+    {add('O');}
     break;
 
   case 139:
-#line 245 "parser.y"
+#line 249 "parser.y"
     {printf("expr < term\n");}
     break;
 
   case 140:
-#line 246 "parser.y"
-    {add("O");}
+#line 250 "parser.y"
+    {add('O');}
     break;
 
   case 141:
-#line 246 "parser.y"
+#line 250 "parser.y"
     {printf("expr > term\n");}
     break;
 
   case 142:
-#line 247 "parser.y"
-    {add("O");}
+#line 251 "parser.y"
+    {add('O');}
     break;
 
   case 143:
-#line 247 "parser.y"
+#line 251 "parser.y"
     {printf("expr <= term\n");}
     break;
 
   case 144:
-#line 248 "parser.y"
-    {add("O");}
+#line 252 "parser.y"
+    {add('O');}
     break;
 
   case 145:
-#line 248 "parser.y"
+#line 252 "parser.y"
     {printf("expr >= term\n");}
     break;
 
   case 146:
-#line 249 "parser.y"
-    {add("O");}
+#line 253 "parser.y"
+    {add('O');}
     break;
 
   case 147:
-#line 249 "parser.y"
+#line 253 "parser.y"
     {printf("expr ^ term\n");}
     break;
 
   case 148:
-#line 250 "parser.y"
-    {add("O");}
+#line 254 "parser.y"
+    {add('O');}
     break;
 
   case 149:
-#line 250 "parser.y"
+#line 254 "parser.y"
     {printf("expr && term\n");}
     break;
 
   case 150:
-#line 251 "parser.y"
-    {add("O");}
+#line 255 "parser.y"
+    {add('O');}
     break;
 
   case 151:
-#line 251 "parser.y"
+#line 255 "parser.y"
     {printf("expr || term\n");}
     break;
 
   case 152:
-#line 252 "parser.y"
-    {add("O");}
+#line 256 "parser.y"
+    {add('O');}
     break;
 
   case 153:
-#line 252 "parser.y"
+#line 256 "parser.y"
     {printf("!term\n");}
     break;
 
   case 154:
-#line 253 "parser.y"
+#line 257 "parser.y"
     {printf("(expr)\n");}
     break;
 
   case 155:
-#line 254 "parser.y"
-    {add("O");}
+#line 258 "parser.y"
+    {add('O');}
     break;
 
   case 156:
-#line 254 "parser.y"
+#line 258 "parser.y"
     {printf("expr + (expr)\n");}
     break;
 
   case 157:
-#line 255 "parser.y"
-    {add("O");}
+#line 259 "parser.y"
+    {add('O');}
     break;
 
   case 158:
-#line 255 "parser.y"
+#line 259 "parser.y"
     {printf("expr - (expr)\n");}
     break;
 
   case 159:
-#line 256 "parser.y"
-    {add("O");}
+#line 260 "parser.y"
+    {add('O');}
     break;
 
   case 160:
-#line 256 "parser.y"
+#line 260 "parser.y"
     {printf("expr * (expr)\n");}
     break;
 
   case 161:
-#line 257 "parser.y"
-    {add("O");}
+#line 261 "parser.y"
+    {add('O');}
     break;
 
   case 162:
-#line 257 "parser.y"
+#line 261 "parser.y"
     {printf("expr / (expr)\n");}
     break;
 
   case 163:
-#line 258 "parser.y"
-    {add("O");}
+#line 262 "parser.y"
+    {add('O');}
     break;
 
   case 164:
-#line 258 "parser.y"
+#line 262 "parser.y"
     {printf("expr == (expr)\n");}
     break;
 
   case 165:
-#line 259 "parser.y"
-    {add("O");}
+#line 263 "parser.y"
+    {add('O');}
     break;
 
   case 166:
-#line 259 "parser.y"
+#line 263 "parser.y"
     {printf("expr != (expr)\n");}
     break;
 
   case 167:
-#line 260 "parser.y"
-    {add("O");}
+#line 264 "parser.y"
+    {add('O');}
     break;
 
   case 168:
-#line 260 "parser.y"
+#line 264 "parser.y"
     {printf("expr < (expr)\n");}
     break;
 
   case 169:
-#line 261 "parser.y"
-    {add("O");}
+#line 265 "parser.y"
+    {add('O');}
     break;
 
   case 170:
-#line 261 "parser.y"
+#line 265 "parser.y"
     {printf("expr > (expr)\n");}
     break;
 
   case 171:
-#line 262 "parser.y"
-    {add("O");}
+#line 266 "parser.y"
+    {add('O');}
     break;
 
   case 172:
-#line 262 "parser.y"
+#line 266 "parser.y"
     {printf("expr <= (expr)\n");}
     break;
 
   case 173:
-#line 263 "parser.y"
-    {add("O");}
+#line 267 "parser.y"
+    {add('O');}
     break;
 
   case 174:
-#line 263 "parser.y"
+#line 267 "parser.y"
     {printf("expr >= (expr)\n");}
     break;
 
   case 175:
-#line 264 "parser.y"
-    {add("O");}
+#line 268 "parser.y"
+    {add('O');}
     break;
 
   case 176:
-#line 264 "parser.y"
+#line 268 "parser.y"
     {printf("expr ^ (expr)\n");}
     break;
 
   case 177:
-#line 265 "parser.y"
-    {add("O");}
+#line 269 "parser.y"
+    {add('O');}
     break;
 
   case 178:
-#line 265 "parser.y"
+#line 269 "parser.y"
     {printf("expr && (expr)\n");}
     break;
 
   case 179:
-#line 266 "parser.y"
-    {add("O");}
+#line 270 "parser.y"
+    {add('O');}
     break;
 
   case 180:
-#line 266 "parser.y"
+#line 270 "parser.y"
     {printf("expr || (expr)\n");}
     break;
 
   case 181:
-#line 267 "parser.y"
+#line 271 "parser.y"
     {printf("! (expr)\n");}
     break;
 
   case 182:
-#line 268 "parser.y"
-    {add("V");}
+#line 272 "parser.y"
+    {add('V');}
     break;
 
   case 183:
-#line 268 "parser.y"
+#line 272 "parser.y"
     {printf("identifier\n");}
     break;
 
   case 184:
-#line 269 "parser.y"
+#line 273 "parser.y"
     {printf("function call\n");}
     break;
 
   case 185:
-#line 281 "parser.y"
-    {add("C");}
+#line 285 "parser.y"
+    {add('C');}
     break;
 
   case 186:
-#line 281 "parser.y"
+#line 285 "parser.y"
     {printf("number\n");}
     break;
 
   case 187:
-#line 282 "parser.y"
-    {add("C");}
+#line 286 "parser.y"
+    {add('C');}
     break;
 
   case 188:
-#line 282 "parser.y"
+#line 286 "parser.y"
     {printf("true\n");}
     break;
 
   case 189:
-#line 283 "parser.y"
-    {add("C");}
+#line 287 "parser.y"
+    {add('C');}
     break;
 
   case 190:
-#line 283 "parser.y"
+#line 287 "parser.y"
     {printf("false\n");}
     break;
 
   case 191:
-#line 284 "parser.y"
-    {add("C");}
+#line 288 "parser.y"
+    {add('C');}
     break;
 
   case 192:
-#line 284 "parser.y"
+#line 288 "parser.y"
     {printf("char\n");}
     break;
 
   case 193:
-#line 285 "parser.y"
-    {add("C");}
+#line 289 "parser.y"
+    {add('C');}
     break;
 
   case 194:
-#line 285 "parser.y"
+#line 289 "parser.y"
     {printf("string\n");}
     break;
 
   case 195:
-#line 286 "parser.y"
-    {add("C");}
+#line 290 "parser.y"
+    {add('C');}
     break;
 
   case 196:
-#line 286 "parser.y"
+#line 290 "parser.y"
     {printf("float\n");}
     break;
 
   case 197:
-#line 291 "parser.y"
-    {add("K");}
+#line 295 "parser.y"
+    {add('K');}
     break;
 
   case 198:
-#line 292 "parser.y"
-    {add("K");}
+#line 296 "parser.y"
+    {add('K');}
     break;
 
   case 199:
-#line 293 "parser.y"
-    {add("K");}
+#line 297 "parser.y"
+    {add('K');}
     break;
 
   case 200:
-#line 294 "parser.y"
-    {add("K");}
+#line 298 "parser.y"
+    {add('K');}
     break;
 
   case 201:
-#line 295 "parser.y"
-    {add("K");}
+#line 299 "parser.y"
+    {add('K');}
     break;
 
   case 202:
-#line 296 "parser.y"
-    {add("K");}
+#line 300 "parser.y"
+    {add('K');}
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 2902 "y.tab.c"
+#line 2906 "y.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -3112,7 +3116,7 @@ yyreturn:
 }
 
 
-#line 297 "parser.y"
+#line 301 "parser.y"
 
 
 
@@ -3125,56 +3129,71 @@ yyerror: This function is called when there's a syntax error in the input.
 It prints an error message and exits the program.
 */
 void yyerror(const char *s) {
-    fprintf(stderr, "Error: %s\n", s);
-    exit(1);
+    fprintf(stderr, "Parse error: %s\n", s);
+    /* exit(1); */
 }
 /**/
+/*
+lookup_symbol: This function searches for a symbol in the symbol table by name.
+If the symbol is found, it returns its index in the table; otherwise, it returns -1.
+*/
+int lookup_symbol(char *type) {
+    for (int i = symbol_count - 1; i >=0; i--) {
+        if (symbol_table[i].id_name && type) {
+            return -1;
+            break;
+        }
+        return 0;
+    }
+    return -1;
+}
+
 void add(char c){
-    q = search(yytext);
+    q = lookup_symbol(yytext);
     if(!q){
-        if(c == "H"){
+        if(c == 'H'){
             symbol_table[symbol_count].id_name = strdup(yytext);
             symbol_table[symbol_count].data_type = strdup(type);
             symbol_table[symbol_count].line_no = countn;
             symbol_table[symbol_count].type = strdup("Header");
             symbol_count++;
         }
-        else if(c == "K"){
+        else if(c == 'K'){
             symbol_table[symbol_count].id_name = strdup(yytext);
             symbol_table[symbol_count].data_type = strdup("N/A");
             symbol_table[symbol_count].line_no = countn;
             symbol_table[symbol_count].type = strdup("Keyword\t");
             symbol_count++;
         }
-        else if(c == "V"){
+        else if(c == 'V'){
             symbol_table[symbol_count].id_name = strdup(yytext);
             symbol_table[symbol_count].data_type = strdup(type);
             symbol_table[symbol_count].line_no = countn;
             symbol_table[symbol_count].type = strdup("Variable");
             symbol_count++;
         }
-        else if(c == "C"){
+        else if(c == 'C'){
             symbol_table[symbol_count].id_name = strdup(yytext);
             symbol_table[symbol_count].data_type = strdup("CONST");
             symbol_table[symbol_count].line_no = countn;
             symbol_table[symbol_count].type = strdup("Constant");
             symbol_count++;
         }
-        else if(c == "F"){
+        else if(c == 'F'){
             symbol_table[symbol_count].id_name = strdup(yytext);
             symbol_table[symbol_count].data_type = strdup(type);
             symbol_table[symbol_count].line_no = countn;
             symbol_table[symbol_count].type = strdup("Function");
             symbol_count++;
         }
-        else if(c == "O"){
+        else if(c == 'O'){
             symbol_table[symbol_count].id_name = strdup(yytext);
             symbol_table[symbol_count].data_type = strdup("N/A");
             symbol_table[symbol_count].line_no = countn;
             symbol_table[symbol_count].type = strdup("Operator");
             symbol_count++;
         }
-        else if(c == "S"){
+        else if(c == 'S'){
             symbol_table[symbol_count].id_name = strdup(yytext);
             symbol_table[symbol_count].data_type = strdup("N/A");
             symbol_table[symbol_count].line_no = countn;
@@ -3183,20 +3202,7 @@ void add(char c){
         }
     }
 }
-/*
-lookup_symbol: This function searches for a symbol in the symbol table by name.
-If the symbol is found, it returns its index in the table; otherwise, it returns -1.
-*/
-int lookup_symbol(char *type) {
-    for (int i = symbol_count - 1; i >=0; i--) {
-        if (strcmp(symbol_table[i].id_name, type) == 0) {
-            return -1;
-            break;
-        }
-        return 0;
-    }
-    return -1;
-}
+
 
 /*
 add_symbol: This function adds a new symbol to the symbol table.
@@ -3224,10 +3230,10 @@ int main(int argc, char **argv) {
 	printf("\nSYMBOL   DATATYPE   TYPE   LINE NUMBER \n");
 	printf("_______________________________________\n\n");
 	int i=0;
-	for(i=0; i<count; i++) {
+	for(i=0; i<symbol_count; i++) {
 		printf("%s\t%s\t%s\t%d\t\n", symbol_table[i].id_name, symbol_table[i].data_type, symbol_table[i].type, symbol_table[i].line_no);
 	}
-	for(i=0;i<count;i++) {
+	for(i=0;i<symbol_count;i++) {
 		free(symbol_table[i].id_name);
 		free(symbol_table[i].type);
 	}
