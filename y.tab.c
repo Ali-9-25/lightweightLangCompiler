@@ -1755,8 +1755,8 @@ yyerror: This function is called when there's a syntax error in the input.
 It prints an error message and exits the program.
 */
 void yyerror(const char *s) {
-    fprintf(stderr, "Error: %s\n", s);
-    exit(1);
+    fprintf(stderr, "Parse error: %s\n", s);
+    /* exit(1); */
 }
 
 /*

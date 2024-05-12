@@ -9,7 +9,7 @@
 struct symbol {
     char *name;
     char* data_type; // 0 for int, 1 for float
-    char * type;  // keyword, constant, variable
+    char* type;  // keyword, constant, variable
     int line_no; // line number too check if the variable is initialized or if the closest scope control token
 };
 nodeType *opr(int oper, int nops, ...);
@@ -29,6 +29,9 @@ extern int countn; // line count
 %}
 
 %union {
+    int intval;
+    float floatval;
+    char *strval;
     int num;   // integer
     char *str; // string 
     float f;   // float
@@ -366,8 +369,8 @@ yyerror: This function is called when there's a syntax error in the input.
 It prints an error message and exits the program.
 */
 void yyerror(const char *s) {
-    fprintf(stderr, "Error: %s\n", s);
-    exit(1);
+    fprintf(stderr, "Parse error: %s\n", s);
+    /* exit(1); */
 }
 
 /*

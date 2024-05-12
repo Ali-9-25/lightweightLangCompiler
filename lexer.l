@@ -1,12 +1,14 @@
 %{
-#include "parser.tab.h"
+#include "y.tab.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 int countn = 1;
 %}
 
-%option yylineno
+/* #define YY_DECL int yylex() */
+/* #define YY_DECL int yylex(yylval_param_type *yylval, yytext_param_type *yytext, yystate_param_type *yystate) */
+/* %option yylineno */
 unary "++"|"--"
 
 %%
