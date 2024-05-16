@@ -15,62 +15,157 @@ using namespace std;
 // return flase if there is type mismatch and push the error to the errorlist, otherwise return true
 
 // compares data type in symbol table with type of value, returns false on mismatch
-std::pair<bool, std::string> SemanticAnalyser::checkType(std::string value, std::string symbolTableType)
+ValidationResult SemanticAnalyser::checkType(std::string value, std::string symbolTableType)
 {
-    std::pair<bool, std::string> result;
+    ValidationResult result;
 
     switch (symbolTableType)
     {
     case "int":
-        if (checkInt(value))
-        {
-            result.first = true;
-            result.second = value;
-        }
+        return intNarrowingConversion(value);
         break;
     case "float":
-        if (checkFloat(value))
-        {
-            result.first = true;
-            result.second = value;
-        }
+        return floatNarrowingConversion(value);
         break;
     case "bool":
-        if (checkBool(value))
-        {
-            result.first = true;
-            result.second = value;
-        }
+        return boolNativeConversion(value);
         break;
     case "string":
         if (checkString(value))
         {
-            result.first = true;
-            result.second = value;
+            result.isValid = true;
+            result.value = value;
+        }
+        else
+        {
+            printf("ERROR: Invalid value for string data type");
         }
         break;
     case "char":
         if (checkChar(value))
         {
-            result.first = true;
-            result.second = value;
+            result.isValid = true;
+            result.value = value;
+        }
+        else
+        {
+            printf("ERROR: Invalid value for char data type");
         }
         break;
     case "void":
         if (checkVoid(value))
         {
-            result.first = true;
-            result.second = value;
+            result.isValid = true;
+            result.value = value;
+        }
+        // TODO: check if needed
+        else
+        {
+            printf("ERROR: Invalid value for void data type")
         }
         break;
     default:
         printf("ERROR: Invalid data type, please use a supported data type {int, float, bool, string, char, void}");
-        // code to be executed if none of the above cases are true
     }
 
-    if (type1 != type2 && !(type1 == "float" && type2 == "int") && !(type1 == "int" && type2 == "float"))
+    return result;
+}
+
+ValidationResult SemanticAnalyser::intNarrowingConversion(string value)
+{
+    ValidationResult result;
+
+    if (checkInt(value))
     {
-        result.first = false;
+        result.isValid = true;
+        result.value = value;
+    }
+    else if (checkFloat(value))
+    {
+        result.isValid = true;
+        result.value = value.substr(0, value.find('.')); // truncate the float value
+        printf("WARNING: Narrowing conversion from float to int, truncating the value to %s", result.value);
+    }
+    else if (checkChar(value))
+    {
+        result.isValid = true;
+        result.value = std::to_string(static_cast<int>(value[1])); // convert the char value to int (ASCII value)
+        printf("WARNING: Narrowing conversion from char to int, converting the value to %s", result.value);
+    }
+    else if (checkBool(value))
+    {
+        result.isValid = true;
+        result.value = value == "true" ? "1" : "0"; // convert the bool value to int
+        printf("WARNING: Narrowing conversion from bool to int, converting the value to %s", result.value);
+    }
+    else
+    {
+        result.isValid = false;
+        result.value = value;
+        printf("ERROR: Invalid value for int data type");
+    }
+
+    return result;
+}
+
+ValidationResult SemanticAnalyser::floatNarrowingConversion(string value)
+{
+    ValidationResult result;
+
+    if (checkFloat(value))
+    {
+        result.isValid = true;
+        result.value = value;
+    }
+    else if (checkInt(value))
+    {
+        result.isValid = true;
+        result.value = value + ".0"; // convert the int value to float
+        printf("WARNING: Narrowing conversion from int to float, converting the value to %s", result.value);
+    }
+    else
+    {
+        result.isValid = false;
+        result.value = value;
+        printf("ERROR: Invalid value for float data type");
+    }
+
+    return result;
+}
+
+ValidationResult SemanticAnalyser::boolNativeConversion(string value)
+{
+    ValidationResult result;
+
+    if (checkBool(value))
+    {
+        result.isValid = true;
+        result.value = value;
+    }
+    else if (checkInt(value))
+    {
+        result.isValid = true;
+        result.value = value == "0" ? "false" : "true"; // convert the int value to bool
+        printf("WARNING: Native conversion from int to bool, converting the value to %s", result.value);
+    }
+    else if (checkFloat(value))
+    {
+        result.isValid = true;
+        result.value = value == "0.0" ? "false" : "true"; // convert the float value to bool
+        printf("WARNING: Native conversion from float to bool, converting the value to %s", result.value);
+    }
+    else if (checkString(value) || checkChar(value))
+    {
+        result.isValid = true;
+        result.value = value == "" ? "false" : value == '' ? "false"
+                                                           : "true"; // convert the string or char value to bool
+        printf("WARNING: Native conversion from string or char to bool, converting the value to %s", result.value);
+    }
+    else
+    {
+        result.isValid = false;
+        result.value = value;
+        printf("ERROR: Invalid value for bool data type");
     }
 
     return result;
@@ -248,17 +343,11 @@ bool SemanticAnalyser::checkBool(string value)
 
 bool SemanticAnalyser::checkVoid(string value)
 {
-    // Check if the string is empty
+    // Check if the string is empty "void"
     if (value.empty())
     {
-        return false;
+        return true;
     }
 
-    // Check if the string is "void"
-    if (value != "void")
-    {
-        return false;
-    }
-
-    return true;
+    return false;
 }

@@ -2430,42 +2430,42 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 272 "./parser.y"
-    {printf("int\n");    (yyval.str) = (yyvsp[(1) - (1)].str);}
+    {printf("int\n");    (yyval.str) = (yyvsp[(1) - (1)].str);;}
     break;
 
   case 99:
 
 /* Line 1455 of yacc.c  */
 #line 273 "./parser.y"
-    {printf("bool\n");   (yyval.str) = (yyvsp[(1) - (1)].str);}
+    {printf("bool\n");   (yyval.str) = (yyvsp[(1) - (1)].str);;}
     break;
 
   case 100:
 
 /* Line 1455 of yacc.c  */
 #line 274 "./parser.y"
-    {printf("char\n");   (yyval.str) = (yyvsp[(1) - (1)].str);}
+    {printf("char\n");   (yyval.str) = (yyvsp[(1) - (1)].str);;}
     break;
 
   case 101:
 
 /* Line 1455 of yacc.c  */
 #line 275 "./parser.y"
-    {printf("string\n"); (yyval.str) = (yyvsp[(1) - (1)].str);}
+    {printf("string\n"); (yyval.str) = (yyvsp[(1) - (1)].str);;}
     break;
 
   case 102:
 
 /* Line 1455 of yacc.c  */
 #line 276 "./parser.y"
-    {printf("float\n");  (yyval.str) = (yyvsp[(1) - (1)].str);}
+    {printf("float\n");  (yyval.str) = (yyvsp[(1) - (1)].str);;}
     break;
 
   case 103:
 
 /* Line 1455 of yacc.c  */
 #line 277 "./parser.y"
-    {printf("void\n");   (yyval.str) = (yyvsp[(1) - (1)].str);}
+    {printf("void\n");   (yyval.str) = (yyvsp[(1) - (1)].str);;}
     break;
 
 

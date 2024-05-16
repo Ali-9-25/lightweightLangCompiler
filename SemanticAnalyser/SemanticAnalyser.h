@@ -4,12 +4,19 @@
 #include <string>
 using namespace std;
 
+struct ValidationResult
+{
+    bool isValid;
+    std::string value;
+};
+
 class SemanticAnalyser
 
 {
-
-    bool isConstant(bool isinitialised, bool isconstant);
-    bool checkType(string type1, string type2);
+    // bool isConstant(bool isinitialised, bool isconstant);
+    ValidationResult checkType(string value, string symbolTableType);
+    ValidationResult intNarrowingConversion(string value);
+    ValidationResult floatNarrowingConversion(string value);
 
     bool checkInt(string value);
     bool checkFloat(string value);
