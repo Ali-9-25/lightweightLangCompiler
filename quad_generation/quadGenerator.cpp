@@ -2,7 +2,6 @@
 #include <string>
 #include <fstream>
 #include <iomanip>
-
 #include "quadGenerator.h"
 
 using namespace std;
@@ -20,8 +19,7 @@ void QuadGenerator::startScope() {
 }
 
 void QuadGenerator::endScope(string type) {
-    
-    if(scopes.empty()){
+    if (scopes.empty()) {
         cerr << "Error: No scope to end" << endl;
         return;
     }
@@ -29,186 +27,82 @@ void QuadGenerator::endScope(string type) {
     vector<Quadruple *> *scope = scopes.top();
     scopes.pop();
 
+    if (scopes.empty()) {
+        cerr << "Error: No parent scope to end into" << endl;
+        delete scope;
+        return;
+    }
+
     vector<Quadruple *> *parentScope = scopes.top();
 
-    if (type == "if") 
-    {
-        addQuad("JF",parentScope->back()->getDestination() , "", "L" + to_string(labelCount));
+    if (type == "if") {
+        addQuad("JF", parentScope->back()->getDestination(), "", "L" + to_string(labelCount));
         parentScope->insert(parentScope->end(), scope->begin(), scope->end());
-        addQuad("L"+ to_string(labelCount)+ ":", "", "", "");
-        labelCount++; 
-    } 
-    else if (type == "else") 
-    {
+        addQuad("L" + to_string(labelCount) + ":", "", "", "");
+        labelCount++;
+    } else if (type == "else") {
         parentScope->insert(parentScope->end(), scope->begin(), scope->end());
-    } 
-    else if (type == "for") 
-    {
-        // addQuad("JMP", "", "", "L" + to_string(labelCount));
-        // addQuad("L"+to_string(labelCount)+":", "", "", "");
-        // parentScope->insert(parentScope->end(), scope->begin(), scope->end());
+    } else if (type == "for") {
         addQuad(type, "", "", "");
         parentScope->insert(parentScope->end(), scope->begin(), scope->end());
         addQuad(type, "", "", "");
         labelCount++;
-    } 
-    else if (type == "while") 
-    {   
-        string startLabel = "L"+to_string(labelCount);
+    } else if (type == "while") {
+        string startLabel = "L" + to_string(labelCount);
         labelCount++;
-        string endLabel = "L"+to_string(labelCount);
+        string endLabel = "L" + to_string(labelCount);
         labelCount++;
 
-        auto it = parentList->rbegin();
-        while((*it)->getDestination() != "T0")
-        {
+        auto it = parentScope->rbegin();
+        while ((*it)->getDestination() != "T0") {
             ++it;
         }
         ++it;
-        parentScope->insert(it.base(),new Quadruple(startLabel+":","","",""));
-        addQuad("JF",parentScope->back()->getDestination(),"",endLabel);
-        parentList->insert(parentScope->end(),scope->begin(),scope->end());
-        addQuad("JMP","","",startLabel);
-        addQuad(endLabel+":","","","");
-    } 
-    // else if(type == "switch")
-    // {   
-    //     addQuad(type,"","","");
-    //     parentScope->insert(parentScope->end(), scope->begin(), scope->end());
-    //     addQuad(type,"","","");
-    //     labelCount++;
-    // }
-    // else if(type == "case"){
-    //     addQuad(type,"","","");
-    //     parentScope->insert(parentScope->end(), scope->begin(), scope->end());
-    //     addQuad(type,"","","");
-    //     labelCount++;
-    // }
-    else if(type == "switch")
-    {   
-        // Start of switch scope
-        addQuad(type,"","","");
+        parentScope->insert(it.base(), new Quadruple(startLabel + ":", "", "", ""));
+        addQuad("JF", parentScope->back()->getDestination(), "", endLabel);
         parentScope->insert(parentScope->end(), scope->begin(), scope->end());
+        addQuad("JMP", "", "", startLabel);
+        addQuad(endLabel + ":", "", "", "");
+    } else if (type == "repeat") {
+        string startLabel = "L" + to_string(labelCount);
+        labelCount++;
 
-        // For each case in the switch
-        for(auto& caseQuad : *scope)
-        {
-            // If it's a case
-            if(caseQuad->getOp() == "case")
-            {
-                string caseLabel = "L"+to_string(labelCount);
-                labelCount++;
-                string endLabel = "L"+to_string(labelCount);
-                labelCount++;
-
-                // Jump to end if not equal
-                addQuad("JNE", parentScope->back()->getDestination(), caseQuad->getArg1(), endLabel);
-
-                // Case body
-                parentScope->insert(parentScope->end(), caseQuad->getScope()->begin(), caseQuad->getScope()->end());
-
-                // Jump to end of switch after case
-                addQuad("JMP", "", "", "L"+to_string(labelCount));
-
-                // End of case
-                addQuad(endLabel+":", "", "", "");
-            }
+        addQuad(startLabel + ":", "", "", "");
+        parentScope->insert(parentScope->end(), scope->begin(), scope->end());
+        repeatLabels.push(startLabel);
+    } else if (type == "until") {
+        if (repeatLabels.empty()) {
+            cerr << "Error: No matching repeat for until" << endl;
+            delete scope;
+            return;
         }
 
-        // For each default in the switch
-        for(auto& defaultQuad : *scope)
-        {
-            // If it's a default
-            if(defaultQuad->getOp() == "default")
-            {
-                // Default body
-                parentScope->insert(parentScope->end(), defaultQuad->getScope()->begin(), defaultQuad->getScope()->end());
-            }
-        }
+        string startLabel = repeatLabels.top();
+        repeatLabels.pop();
 
-        // End of switch
-        addQuad("L"+to_string(labelCount)+":", "", "", "");
-        labelCount++;
-    }
-    // else if(type == "repeat"){
-    //     addQuad(type,"","","");
-    //     parentScope->insert(parentScope->end(), scope->begin(), scope->end());
-    //     addQuad(type,"","","");
-    //     labelCount++;
-    // }
-    // else if(type == "until"){
-    //     addQuad(type,"","","");
-    //     parentScope->insert(parentScope->end(), scope->begin(), scope->end());
-    //     addQuad(type,"","","");
-    //     labelCount++;
-    // }
-    else if(type == "repeat" || type == "until"){
-        string startLabel = "L"+to_string(labelCount);
-        labelCount++;
-        string endLabel = "L"+to_string(labelCount);
+        string endLabel = "L" + to_string(labelCount);
         labelCount++;
 
-        if (type == "repeat") {
-            addQuad(startLabel+":", "", "", "");
-            parentScope->insert(parentScope->end(), scope->begin(), scope->end());
-        } else { // type == "until"
-            addQuad("JF",parentScope->back()->getDestination(),"",startLabel);
-            parentScope->insert(parentScope->end(), scope->begin(), scope->end());
-            addQuad(endLabel+":","","","");
-        }
-    }
-    //check it
-    else if(type == "do"){
-        string startLabel = "L"+to_string(labelCount);
-        labelCount++;
-        string endLabel = "L"+to_string(labelCount);
-        labelCount++;
-
-        addQuad(startLabel+":", "", "", "");
+        addQuad("JF", parentScope->back()->getDestination(), "", startLabel);
         parentScope->insert(parentScope->end(), scope->begin(), scope->end());
-        addQuad("JF",parentScope->back()->getDestination(),"",endLabel);
-        addQuad("JMP","","",startLabel);
-        addQuad(endLabel+":","","","");
-    }
-    // check it
-    // else if(type == "function"){
-    //     addQuad(type+":", "", "", "");
-    //     parentScope->insert(parentScope->end(), scope->begin(), scope->end());
-    //     addQuad("RET", "T"+
-    //     to_string(tempVariables.size(), "", ""));
-    //     labelCount++;
-    // }
-    else if(type == "function"){
-        // Get the function name and parameters from somewhere
-        string functionName = ...;
-        vector<string> parameters = ...;
-
-        // Add a quadruple with the function declaration
-        addQuad(type + ":" + functionName, join(parameters, ","), "", "");
-
-        // Insert all the quadruples from the current scope into the parent scope
-        parentScope->insert(parentScope->end(), scope->begin(), scope->end());
-
-        // Get the return value from somewhere
-        string returnValue = ...;
-
-        // Add a "RET" (return) quadruple with the return value
-        addQuad("RET", returnValue, "", "");
-
-        // Increment the label count
+        addQuad(endLabel + ":", "", "", "");
+    } else if (type == "function") {
+        string startLabel = "L" + to_string(labelCount);
         labelCount++;
-
-        // Delete the scope
-        delete scope;
-    }
-    else{
-        addQuad(type+":", "", "", "");
+        string endLabel = "L" + to_string(labelCount);
+        labelCount++;
+        addQuad("JMP", "", "", startLabel);
         parentScope->insert(parentScope->end(), scope->begin(), scope->end());
-        addQuad("RET", "T"+to_string(tempVariables.size(), "", ""));
+        addQuad("RET", "", "", endLabel);
+    } else {
+        addQuad(type + ":", "", "", "");
+        parentScope->insert(parentScope->end(), scope->begin(), scope->end());
+        addQuad("RET", "T" + to_string(tempVariables.size()), "", "");
         labelCount++;
     }
-    clearTemp();    
+    clearTemp();
 }
+
 
 void QuadGenerator::clearTemp() {
     tempVariables.clear();

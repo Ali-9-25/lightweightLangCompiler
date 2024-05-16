@@ -15,6 +15,7 @@ private:
     std::stack<std::vector<Quadruple *>> scopes;
     std::unordered_map<symbol *, std::string> assignments;
     std::unordered_map<std::string, std::string> tempVariables;
+    std::stack<std::vector<Quadruple*>> repeatLabels;
 
 public:
     static int labelCount;
