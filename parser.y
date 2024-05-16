@@ -269,12 +269,12 @@ TERM: NUMBER            {printf("number\n");}
 
 
 
-DATATYPE: INT     {printf("int\n");    $$ = $1}
-        | BOOL    {printf("bool\n");   $$ = $1}
-        | CHAR    {printf("char\n");   $$ = $1}
-        | STRING  {printf("string\n"); $$ = $1}
-        | FLOAT   {printf("float\n");  $$ = $1}
-        | VOID    {printf("void\n");   $$ = $1}
+DATATYPE: INT     {printf("int\n");    $$ = $1;}
+        | BOOL    {printf("bool\n");   $$ = $1;}
+        | CHAR    {printf("char\n");   $$ = $1;}
+        | STRING  {printf("string\n"); $$ = $1;}
+        | FLOAT   {printf("float\n");  $$ = $1;}
+        | VOID    {printf("void\n");   $$ = $1;}
         ;
 %%
 char * charToString(char c) {
