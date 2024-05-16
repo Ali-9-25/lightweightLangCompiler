@@ -66,7 +66,7 @@ extern int countn; // line count
 
 
 %type <num> expr TERM
-%type <str> stmt_list stmt if_stmt while_stmt repeat_stmt for_stmt switch_stmt func_decl var_decl const_decl func_call return_stmt DATATYPE assignment_stmt case_list dec_param_list call_param_list 
+%type <str> stmt_list stmt if_stmt while_stmt repeat_stmt for_stmt switch_stmt func_decl var_decl const_decl func_call return_stmt DATATYPE assignment_stmt case_list dec_param_list call_param_list scope
 
 %left PLUS MINUS
 %left TIMES DIVIDE
@@ -85,9 +85,18 @@ extern int countn; // line count
 It can either be empty or consist of multiple statements (stmt) separated by semicolons.
 */
 stmt_list   : stmt stmt_list   {printf("stmt_list\n");}
-            | LBRACE stmt_list RBRACE stmt_list  {printf("{stmt_list}\n");}
+            | scope 
             |            {printf("stmt epsilon\n");}
             ;
+
+//TODO: call func to construct symbol table
+scope : LBRACE stmt_list RBRACE stmt_list  {printf("{scope}\n");} ;
+/* 
+scope_open: 
+
+
+
+scope_close:  */
 
 /*
 stmt: This rule defines various types of statements in the language, 
@@ -186,6 +195,7 @@ const_decl: CONST DATATYPE IDENTIFIER ASSIGN TERM SEMICOLON  {printf("const data
 assignment_stmt: This rule defines the syntax for assignment statements, 
 where an identifier is assigned the value of an expression followed by a semicolon.
 */
+//TODO: add function to check if identifier is available in symbol table
 assignment_stmt: IDENTIFIER ASSIGN TERM SEMICOLON   {printf("identifier = term ;\n");   add('V', $1, "N/A");}
                | IDENTIFIER ASSIGN expr SEMICOLON   {printf("identifier = expr ;\n");   add('V', $1, "N/A");}
                ;
