@@ -99,7 +99,11 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
+<<<<<<< HEAD
+#line 32 "parser.y"
+=======
 #line 32 "./parser.y"
+>>>>>>> 59fc53211c0ff0b454cfae0354276dc86a9e1aad
 
     int intval;
     float floatval;
@@ -116,6 +120,10 @@ typedef union YYSTYPE
         int b;
         char c;
     } term;
+<<<<<<< HEAD
+
+=======
+>>>>>>> 59fc53211c0ff0b454cfae0354276dc86a9e1aad
     struct var_name {
         char name[100];
         struct node* nd;
@@ -124,7 +132,11 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
+<<<<<<< HEAD
+#line 129 "parser.tab.h"
+=======
 #line 128 "parser.tab.h"
+>>>>>>> 59fc53211c0ff0b454cfae0354276dc86a9e1aad
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

@@ -44,6 +44,10 @@
         "streambuf": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
+<<<<<<< HEAD
+        "ctime": "cpp",
+        "iomanip": "cpp"
+=======
         "xstring": "cpp",
         "xtr1common": "cpp",
         "xutility": "cpp",
@@ -77,5 +81,6 @@
         "xlocnum": "cpp",
         "xloctime": "cpp",
         "xmemory": "cpp"
+>>>>>>> 59fc53211c0ff0b454cfae0354276dc86a9e1aad
     }
 }

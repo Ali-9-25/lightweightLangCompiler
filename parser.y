@@ -45,6 +45,7 @@ extern int countn; // line count
         int b;
         char c;
     } term;
+
     struct var_name {
         char name[100];
         struct node* nd;

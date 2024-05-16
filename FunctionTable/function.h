@@ -2,13 +2,13 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
-#include "../SymbolTable/symbol.h"
+#include "../symbol_table/symbol.h"
 
 class Function {
     private:
         std::string name;
         std::string variableType;
-        std::unordered_map<int, Symbol*> parameters;
+        std::unordered_map<int, symbol*> parameters;
         int count = 0;
         bool isDefined = false;
     
@@ -25,3 +25,5 @@ class Function {
         std::string getVariableType();
         int getCount();
         bool checkDefined();
+
+}
