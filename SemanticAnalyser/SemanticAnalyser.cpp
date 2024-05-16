@@ -21,6 +21,7 @@ bool SemanticAnalyser::checkType(string value, string symbolTableType)
     {
     case "int":
         // code to be executed if expression equals value1
+
         break;
     case "float":
         // code to be executed if expression equals value2
@@ -44,3 +45,122 @@ bool SemanticAnalyser::checkType(string value, string symbolTableType)
     }
     return true;
 }
+
+bool SemanticAnalyser::checkInt(string value)
+{
+    // Remove leading and trailing whitespaces
+    // value.erase(remove_if(value.begin(), value.end(), ::isspace), value.end());
+
+    // Check if the string is empty
+    if (value.empty())
+    {
+        return false;
+    }
+
+    // remove the negative sign if exist
+    if (value[0] == '-')
+    {
+        value = value.substr(1);
+    }
+
+    // Check if the string contains only digits
+    for (char c : value)
+    {
+        if (!isdigit(c))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool SemanticAnalyser::checkFloat(string value)
+{
+    // Remove leading and trailing whitespaces
+    // value.erase(remove_if(value.begin(), value.end(), ::isspace), value.end());
+
+    // Check if the string is empty
+    if (value.empty())
+    {
+        return false;
+    }
+
+    // remove the negative sign if exist
+    if (value[0] == '-')
+    {
+        value = value.substr(1);
+    }
+
+    // Check if the string contains only digits and at most one decimal point
+    bool decimalPointFound = false;
+    for (char c : value)
+    {
+        if (!isdigit(c) && c != '.')
+        {
+            return false;
+        }
+        if (c == '.')
+        {
+            decimalPointFound = true;
+        }
+    }
+    if (!decimalPointFound)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool SemanticAnalyser::checkString(string value)
+{
+    // Check if the string is enclosed in double quotes
+    if (value.size() < 2 || value.front() != '"' || value.back() != '"')
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool SemanticAnalyser::checkChar(string value)
+{
+    // Check if the string is enclosed in single quotes
+    if (value.size() == 3 && value.front() == '\'' && value.back() == '\'')
+    {
+        return true;
+    }
+    if (value.size() == 4 && value[1] == '\\' && value.front() == '\'' && value.back() == '\'')
+    {
+        if (value[2] == 'n' || value[2] == 't' || value[2] == 'r' || value[2] == 'b' || value[2] == 'f' || value[2] == '\\') // check for escape sequences
+        {
+            return true;
+        }
+    }
+    if (value.size() == 6 && value[1] == '\\' && (value.substr(3, 5) == "ooo" || value.substr(3, 5) == "xhh")) // check for octal and hexadecimal escape sequences
+    {
+        return true;
+    }
+    return false;
+}
+
+// bool SemanticAnalyser::checkBool(string value)
+// {
+//     // Remove leading and trailing whitespaces
+//     // value.erase(remove_if(value.begin(), value.end(), ::isspace), value.end());
+
+//     // Check if the string is empty
+//     if (value.empty())
+//     {
+//         return false;
+//     }
+
+//     // Check if the string is either "true" or "false"
+//     if (value != "true" && value != "false")
+//     {
+//         return false;
+//     }
+
+//     return true;
+// }

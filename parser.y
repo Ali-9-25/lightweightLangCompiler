@@ -59,10 +59,10 @@ extern int countn; // line count
 %token <b> TRUE FALSE        // boolean values
 %token <c> COMMA //comma for seperation -> ,
 /* keywords */
-%token <nd_obj> IF ELSE WHILE REPEAT UNTIL FOR SWITCH CASE BREAK CONTINUE CONST INT FLOAT BOOL STRING CHAR VOID RETURN DEFAULT
+%token <str> IF ELSE WHILE REPEAT UNTIL FOR SWITCH CASE BREAK CONTINUE CONST INT FLOAT BOOL STRING CHAR VOID RETURN DEFAULT
 /* operators */
-%token <nd_obj> EQ NEQ LT GT LEQ GEQ PLUS MINUS TIMES DIVIDE ASSIGN LPAREN RPAREN LBRACE RBRACE SEMICOLON COLON POWER UNARY
-%token <nd_obj> AND OR NOT 
+%token <str> EQ NEQ LT GT LEQ GEQ PLUS MINUS TIMES DIVIDE ASSIGN LPAREN RPAREN LBRACE RBRACE SEMICOLON COLON POWER UNARY
+%token <str> AND OR NOT 
 
 
 %type <num> expr TERM
@@ -332,7 +332,7 @@ nodeType *opr(int oper, int nops, ...) {
     return p;
 }
 void add(char c, char * name, char * type){
-    else if(c == 'V'){ //variable
+    if(c == 'V'){ //variable
         symbol_table[symbol_count].name = name;
         symbol_table[symbol_count].data_type = type;
         symbol_table[symbol_count].type = "Variable";
