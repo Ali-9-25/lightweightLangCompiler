@@ -31,7 +31,7 @@ void Function::print() {
     cout << "Function: " << name << " " << variableType << endl;
     for (int i = 0; i < count; i++) {
         cout << "Parameter " << i << ": ";
-        parameters[i]->print();
+        parameters[i].second->disp();
     }
 }
 

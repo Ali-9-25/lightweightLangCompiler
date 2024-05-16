@@ -41,19 +41,67 @@ void QuadGenerator::endScope(string type) {
         // addQuad("JMP", "", "", "L" + to_string(labelCount));
         // addQuad("L"+to_string(labelCount)+":", "", "", "");
         // parentScope->insert(parentScope->end(), scope->begin(), scope->end());
-        addQuad("type", "", "", "");
+        addQuad(type, "", "", "");
         parentScope->insert(parentScope->end(), scope->begin(), scope->end());
+        addQuad(type, "", "", "");
+        labelCount++;
     } 
-    // else if (type == "while") 
-    // {
-    //     addQuad("JMP", "", "", "L" + to_string(labelCount));
-    //     addQuad("L"+to_string(labelCount)+":", "", "", "");
-    //     parentScope->insert(parentScope->end(), scope->begin(), scope->end());
-    // } 
-    // else 
-    // {
-    //     parentScope->insert(parentScope->end(), scope->begin(), scope->end());
-    // }
+    else if (type == "while") 
+    {   
+        string startLabel = "L"+to_string(labelCount);
+        labelCount++;
+        string endLabel = "L"+to_string(labelCount);
+        labelCount++;
+
+        auto it = parentList->rbegin();
+        while((*it)->getDestination() != "T0")
+        {
+            ++it;
+        }
+        ++it;
+        parentScope->insert(it.base(),new Quadruple(startLabel+":","","",""));
+        addQuad("JF",parentScope->back()->getDestination(),"",endLabel);
+        parentList->insert(parentScope->end(),scope->begin(),scope->end());
+        addQuad("JMP","","",startLabel);
+        addQuad(endLabel+":","","","");
+    } 
+    else if(type == "switch")
+    {   
+        addQuad(type,"","","");
+        parentScope->insert(parentScope->end(), scope->begin(), scope->end());
+        addQuad(type,"","","");
+        labelCount++;
+    }
+    else if(type == "repeat"){
+        addQuad(type,"","","");
+        parentScope->insert(parentScope->end(), scope->begin(), scope->end());
+        addQuad(type,"","","");
+        labelCount++;
+    }
+    else if(type == "case"){
+        addQuad(type,"","","");
+        parentScope->insert(parentScope->end(), scope->begin(), scope->end());
+        addQuad(type,"","","");
+        labelCount++;
+    }
+    else if(type == "do"){
+        addQuad(type,"","","");
+        parentScope->insert(parentScope->end(), scope->begin(), scope->end());
+        addQuad(type,"","","");
+        labelCount++;
+    }
+    else if(type == "until"){
+        addQuad(type,"","","");
+        parentScope->insert(parentScope->end(), scope->begin(), scope->end());
+        addQuad(type,"","","");
+        labelCount++;
+    }
+    else{
+        addQuad(type+":", "", "", "");
+        parentScope->insert(parentScope->end(), scope->begin(), scope->end());
+        addQuad("RET", "T"+to_string(tempVariables.size(), "", ""));
+        labelCount++;
+    }
     clearTemp();    
 }
 
@@ -63,7 +111,6 @@ void QuadGenerator::clearTemp() {
 
 const char *QuadGenerator::addAssignment(Symbol *sym) {
     assignments[sym] = "R" + to_string(assignments[sym]);
-
     std::string str_value = assignments[sym];
     char *cstr_value = new char[str_value.length() + 1];
     str_value.copy(cstr_value, str_value.length());
@@ -81,7 +128,6 @@ const char *QuadGenerator::getAssignment(Symbol *sym) {
 
 const char *QuadGenerator::addTemp(string expr1, string op, string expr2) {
     temps["T"+to_string(temps.size())] = expr1 + op + expr2;
-    
     std::string str_value = "T"+to_string(temps.size()-1);
     char *cstr_value = new char[str_value.length() + 1];
     str_value.copy(cstr_value, str_value.length());
