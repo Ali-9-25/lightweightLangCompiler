@@ -24,4 +24,4 @@ class SemanticAnalyser
     bool checkString(string value);
     bool checkChar(string value);
     bool checkVoid(string value);
-}
+};

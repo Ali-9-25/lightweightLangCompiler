@@ -19,18 +19,20 @@ ValidationResult SemanticAnalyser::checkType(std::string value, std::string symb
 {
     ValidationResult result;
 
-    switch (symbolTableType)
+    if (symbolTableType == "int")
     {
-    case "int":
         return intNarrowingConversion(value);
-        break;
-    case "float":
+    }
+    else if (symbolTableType == "float")
+    {
         return floatNarrowingConversion(value);
-        break;
-    case "bool":
+    }
+    else if (symbolTableType == "bool")
+    {
         return boolNativeConversion(value);
-        break;
-    case "string":
+    }
+    else if (symbolTableType == "string")
+    {
         if (checkString(value))
         {
             result.isValid = true;
@@ -40,8 +42,9 @@ ValidationResult SemanticAnalyser::checkType(std::string value, std::string symb
         {
             printf("ERROR: Invalid value for string data type");
         }
-        break;
-    case "char":
+    }
+    else if (symbolTableType == "char")
+    {
         if (checkChar(value))
         {
             result.isValid = true;
@@ -51,20 +54,21 @@ ValidationResult SemanticAnalyser::checkType(std::string value, std::string symb
         {
             printf("ERROR: Invalid value for char data type");
         }
-        break;
-    case "void":
+    }
+    else if (symbolTableType == "void")
+    {
         if (checkVoid(value))
         {
             result.isValid = true;
             result.value = value;
         }
-        // TODO: check if needed
         else
         {
-            printf("ERROR: Invalid value for void data type")
+            printf("ERROR: Invalid value for void data type"); // TODO: check if needed
         }
-        break;
-    default:
+    }
+    else
+    {
         printf("ERROR: Invalid data type, please use a supported data type {int, float, bool, string, char, void}");
     }
 
@@ -157,7 +161,7 @@ ValidationResult SemanticAnalyser::boolNativeConversion(string value)
     else if (checkString(value) || checkChar(value))
     {
         result.isValid = true;
-        result.value = value == "" ? "false" : value == '' ? "false"
+        result.value = value == "" ? "false" : value == "" ? "false"
                                                            : "true"; // convert the string or char value to bool
         printf("WARNING: Native conversion from string or char to bool, converting the value to %s", result.value);
     }

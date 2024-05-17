@@ -5,6 +5,7 @@
 #include <string.h>
 int countn = 1;
 %}
+%option yylineno
 
 /* #define YY_DECL int yylex() */
 /* #define YY_DECL int yylex(yylval_param_type *yylval, yytext_param_type *yytext, yystate_param_type *yystate) */
@@ -58,8 +59,8 @@ unary "++"|"--"
 "and"               {yylval.str = strdup(yytext); return AND; }
 "or"                {yylval.str = strdup(yytext); return OR; }
 "not"               {yylval.str = strdup(yytext); return NOT; }
-[0-9]+              { yylval.num = atoi(yytext); return NUMBER; }
-[-+]?[0-9]+\.[0-9]+ { yylval.f = atof(yytext); return FLOATING_NUMBER; }
+[0-9]+              { yylval.str = strdup(yytext); return NUMBER; }
+[-+]?[0-9]+\.[0-9]+ { yylval.str = strdup(yytext); return FLOATING_NUMBER; }
 "\"([^\"\\]|\\.)*\"" { yylval.str = strdup(yytext); return STRING_LITERAL; }
 "\'([^\"\\]|\\.)*\'" { yylval.str = strdup(yytext); return CHARACTER_LITERAL; }
 [a-zA-Z_][a-zA-Z0-9_]*  { yylval.str = strdup(yytext); return IDENTIFIER; }

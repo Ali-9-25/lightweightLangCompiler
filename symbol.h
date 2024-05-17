@@ -1,9 +1,9 @@
 #pragma once
 #include <iostream>
 #include <string>
-#include <ordered_map>
+// #include <ordered_map>
 
-class symbol
+class Symbol
 {
 private:
     std::string name;         // name of variable or function
@@ -14,7 +14,7 @@ private:
     bool used = false;
 
 public:
-    symbol(std::string name, std::string type, std::string value = NULL, bool constant = false, bool initialized = false, bool used = false);
+    Symbol(std::string name, std::string type, std::string value = NULL, bool constant = false, bool initialized = false, bool used = false);
     void setname(std::string name);
     std::string getname();
     void settype(std::string type);

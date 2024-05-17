@@ -4,7 +4,7 @@
 using namespace std;
 
 //
-symbol::symbol(std::string name, std::string type, std::string value = NULL, bool constant = false, bool initialized = false, bool used = false)
+Symbol::Symbol(std::string name, std::string type, std::string value = NULL, bool constant = false, bool initialized = false, bool used = false)
 {
     this->name = name;
     this->type = type;
@@ -14,61 +14,61 @@ symbol::symbol(std::string name, std::string type, std::string value = NULL, boo
     this->used = used;
 }
 
-void symbol::setname(std::string name)
+void Symbol::setname(std::string name)
 {
     this->name = name;
 }
 
-std::string symbol::getname()
+std::string Symbol::getname()
 {
     return this->name;
 }
-void symbol::settype(std::string type)
+void Symbol::settype(std::string type)
 {
     this->type = type;
 }
-std::string symbol::gettype()
+std::string Symbol::gettype()
 {
     return this->type;
 }
-void symbol::setvalue(std::string value)
+void Symbol::setvalue(std::string value)
 {
     this->value = value;
 }
-std::string symbol::getvalue()
+std::string Symbol::getvalue()
 {
     return this->value;
 }
-void symbol::setconstant(bool constant)
+void Symbol::setconstant(bool constant)
 {
     this->constant = constant;
 }
-bool symbol::getconstant()
+bool Symbol::getconstant()
 {
     return this->constant;
 }
-void symbol::setinitialized(bool initialized)
+void Symbol::setinitialized(bool initialized)
 {
     this->initialized = initialized;
 }
-bool symbol::getintialization()
+bool Symbol::getintialization()
 {
     return this->initialized;
 }
-void symbol::setused(bool used)
+void Symbol::setused(bool used)
 {
     this->used = used;
 }
-bool symbol::getused()
+bool Symbol::getused()
 {
     return this->used;
 }
-void symbol::disp()
+void Symbol::disp()
 {
     cout << this->name << "\t" << this->type << "\t" << this->value << "\t" << this->costant << "\t" << this->initialized << "\t" << this->used << endl;
 }
 
-char *symbol::getattributecstr(int i)
+char *Symbol::getattributecstr(int i)
 {
     if (i == 0)
     {

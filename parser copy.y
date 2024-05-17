@@ -1,44 +1,28 @@
-%code requires{
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include <string.h>
-    #include <stdarg.h>
-    // #include "node.h"
-    #include "scope.h"
-    #include "SemanticAnalyser.h"
-    #include "function.h"
-    #include "functionTable.h"
-    #include "quad.h"
-    #include "quadGenerator.h"
-    #include "symbol_table.h"
-}
-
 %{
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-// #include "node.h"
-#include "scope.h"
-#include "SemanticAnalyser.h"
-#include "function.h"
-#include "functionTable.h"
-#include "quad.h"
-#include "quadGenerator.h"
-#include "symbol_table.h"
+#include "node.h"
+#include "./scope/scope.h"
+#include "./SemanticAnalyser/SemanticAnalyser.h"
+#include "./FunctionTable/function.h"
+#include "./FunctionTable/functionTable.h"
+#include "./quad_generation/quad.h"
+#include "./quad_generation/quadGenerator.h"
+#include "./symbol_table/symbol_table.h"
 #define MAX_SYMBOLS 1000
 /* Symbol table structure */
 struct symbol {
-    public:
     char * name;
     char * data_type; // 0 for int, 1 for float
     char * type;  // keyword, constant, variable
     int line_no; // line number too check if the variable is initialized or if the closest scope control token
 };
 
-// nodeType *opr(int oper, int nops, ...);
-// nodeType *id(int i);
-// nodeType *con(int value);
+nodeType *opr(int oper, int nops, ...);
+nodeType *id(int i);
+nodeType *con(int value);
 //TODO: Add unary operators such as ++, --, !, ~, etc.
 struct symbol symbol_table[MAX_SYMBOLS];
 int symbol_count = 0;
@@ -72,7 +56,7 @@ Stack *scope_stack;
 
     struct var_name {
         char name[100];
-        // struct node* nd;
+        struct node* nd;
     } nd_obj;
 }
 
@@ -115,13 +99,14 @@ stmt_list   : stmt stmt_list   {printf("stmt_list\n");}
             ;
 
 //TODO: call func to construct symbol table
-scope : scope_open stmt_list RBRACE stmt_list  {printf("{scope}\n"); 
-                                                scope_stack.get_symbol_table("test");  
-                                                scope_stack.remove_scope("test"); }
-      | scope_open stmt_list RBRACE;
+scope : LBRACE stmt_list RBRACE stmt_list  {printf("{scope}\n");} ;
+/* 
+scope_open: 
 
-scope_open: LBRACE { scope_stack.insert_scope(); printf("scope open\n"); } 
-            ;
+
+
+scope_close:  */
+
 /*
 stmt: This rule defines various types of statements in the language, 
 including control flow statements (if, while, etc.), function declarations, variable and constant declarations, 
@@ -307,13 +292,15 @@ char * charToString(char c) {
     str[1] = '\0'; // Null-terminate the string
     return str;
 }
-/* 
+
 nodeType *con(int value) {
     nodeType *p;
 
+    /* allocate node */
     if ((p = malloc(sizeof(nodeType))) == NULL)
         yyerror("out of memory");
 
+    /* copy information */
     p->type = typeCon;
     p->con.value = value;
 
@@ -323,24 +310,27 @@ nodeType *con(int value) {
 nodeType *id(int i) {
     nodeType *p;
 
+    /* allocate node */
     if ((p = malloc(sizeof(nodeType))) == NULL)
         yyerror("out of memory");
 
+    /* copy information */
     p->type = typeId;
     p->id.i = i;
 
     return p;
-} 
-
+}
 
 nodeType *opr(int oper, int nops, ...) {
     va_list ap;
     nodeType *p;
     int i;
 
+    /* allocate node, extending op array */
     if ((p = malloc(sizeof(nodeType) + (nops-1) * sizeof(nodeType *))) == NULL)
         yyerror("out of memory");
 
+    /* copy information */
     p->type = typeOpr;
     p->opr.oper = oper;
     p->opr.nops = nops;
@@ -350,7 +340,6 @@ nodeType *opr(int oper, int nops, ...) {
     va_end(ap);
     return p;
 }
-*/
 void add(char c, char * name, char * type){
     if(c == 'V'){ //variable
         symbol_table[symbol_count].name = name;
